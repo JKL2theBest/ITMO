@@ -1,0 +1,7 @@
+dump
+push_back jkl2.com
+push_back muhammet.com
+push_back emilia.one.love
+push_back www.leningrad.spb.ru
+push_back www.guthub.com
+dump dump.txt
