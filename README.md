@@ -35,7 +35,7 @@
 - 📁 [ИББД](https://github.com/JKL2theBest/ITMO/tree/master/DatabaseSecurity)
 - 📁 [АиСД](https://github.com/JKL2theBest/ITMO/tree/master/AlghoritmsAndDataStructures)
 - 📁 [ЭлТех](https://github.com/JKL2theBest/ITMO/tree/master/ElectricalEngineering)
-- 📁 [ВебТех](https://github.com/JKL2theBest/ITMO/tree/master/WebTechnologies/SuhangulyyevM_Senior_2)
+- 📁 [ВебТех](https://github.com/JKL2theBest/ITMO/tree/master/WebTechnologies)
 
 ---
 
