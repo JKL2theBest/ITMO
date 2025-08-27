@@ -4,6 +4,9 @@
 
 ---
 
+### Пятый семестр
+- [Учусь](https://github.com/JKL2theBest/ITMO/tree/master/_Studying(5th_sem))
+
 ## 🗂️ Структура
 
 ### Первый курс
