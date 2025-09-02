@@ -1,9 +1,18 @@
 import re
 from collections import deque
 
-class FormatError(Exception): pass
-class UndoError(Exception): pass
-class RedoError(Exception): pass
+
+class FormatError(Exception):
+    pass
+
+
+class UndoError(Exception):
+    pass
+
+
+class RedoError(Exception):
+    pass
+
 
 class MyDeque(deque):
     def __init__(self, iterable=()):
@@ -17,8 +26,8 @@ class MyDeque(deque):
 
     def _check_format(self, item):
         if not isinstance(item, str):
-            raise TypeError("Только стринги дозволены") # Кек
-        pattern = r'^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2,3}\d{2,3}$'
+            raise TypeError("Только стринги дозволены")  # Кек
+        pattern = r"^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2,3}\d{2,3}$"
         if not re.match(pattern, item):
             raise FormatError("Неверный формат Автомобильного номера")
 

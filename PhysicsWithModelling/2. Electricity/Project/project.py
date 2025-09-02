@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 # Константы и параметры
 k = 1  # Условная константа кулоновской силы
 charge_magnitude = 1  # Модуль заряда (в безразмерной форме)
-grid_size = 100 
-grid_range = 2.0 
+grid_size = 100
+grid_range = 2.0
 epsilon = 1e-2  # Точность для завершения итераций
 max_steps = 5  # Максимальное количество шагов
 
@@ -35,8 +35,15 @@ for step in range(max_steps):
     # Обновление значений потенциала
     for i in range(1, grid_size - 1):
         for j in range(1, grid_size - 1):
-            if not any(np.isclose([X[i, j], Y[i, j]], [charge["x"], charge["y"]], atol=0.1).all() for charge in charges):
-                phi[i, j] = 0.25 * (phi[i+1, j] + phi[i-1, j] + phi[i, j+1] + phi[i, j-1])
+            if not any(
+                np.isclose(
+                    [X[i, j], Y[i, j]], [charge["x"], charge["y"]], atol=0.1
+                ).all()
+                for charge in charges
+            ):
+                phi[i, j] = 0.25 * (
+                    phi[i + 1, j] + phi[i - 1, j] + phi[i, j + 1] + phi[i, j - 1]
+                )
     diff = np.max(np.abs(phi - phi_old))
     print(f"Шаг {step + 1}, изменение потенциала: {diff:.4e}")
     if diff < epsilon:
@@ -62,10 +69,12 @@ Ey_normalized = Ey / E_magnitude
 
 plt.figure(figsize=(8, 6))
 plt.contour(X, Y, phi, levels=50, cmap="coolwarm", alpha=0.75)
-plt.streamplot(X, Y, Ex_normalized, Ey_normalized, color=E_magnitude, cmap="viridis", density=1)
+plt.streamplot(
+    X, Y, Ex_normalized, Ey_normalized, color=E_magnitude, cmap="viridis", density=1
+)
 for charge in charges:
-    color = 'red' if charge["q"] > 0 else 'blue'
-    plt.plot(charge["x"], charge["y"], 'o', color=color, markersize=10)
+    color = "red" if charge["q"] > 0 else "blue"
+    plt.plot(charge["x"], charge["y"], "o", color=color, markersize=10)
 plt.title("Силовые линии и эквипотенциальные поверхности")
 plt.xlabel("x (безразмерные координаты)")
 plt.ylabel("y (безразмерные координаты)")
