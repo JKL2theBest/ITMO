@@ -72,7 +72,7 @@ def find_best_pair(lines):
 
     # По условию задачи решение гарантированно существует.
     # То есть этот блок является защитой на случай, если входные данные нарушат это условие.
-    if best_r == 0:
+    if best_r == 0: # pragma: no cover
         raise RuntimeError("Не удалось найти подходящую пару мест.")
 
     return best_r, best_p_plus_1
@@ -98,5 +98,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()
