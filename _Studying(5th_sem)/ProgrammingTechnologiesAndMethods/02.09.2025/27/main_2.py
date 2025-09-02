@@ -1,3 +1,5 @@
+# Суханкулиев Мухаммет, N3346, ТМПрог_ТЗИ_N3 1.5, Python 3.13.2
+# Решение задания 2
 import sys
 import numpy as np
 from sklearn.cluster import DBSCAN
