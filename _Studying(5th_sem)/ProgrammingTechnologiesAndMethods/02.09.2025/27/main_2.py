@@ -1,5 +1,16 @@
 # Суханкулиев Мухаммет, N3346, ТМПрог_ТЗИ_N3 1.5, Python 3.13.2
 # Решение задания 2
+
+'''
+Запуск:
+python main_2.py 27a.txt 2 27b.txt 3
+Вывод:
+40112
+103021
+20063
+94283
+''' 
+
 import sys
 import numpy as np
 from sklearn.cluster import DBSCAN
