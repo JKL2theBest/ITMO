@@ -3,7 +3,6 @@ from main import find_best_pair, main
 
 
 def create_file_content(M, K, seats):
-    """Вспомогательная функция для генерации содержимого тестового файла."""
     lines = [f"{len(seats)} {M} {K}\n"]
     for r, s in seats:
         lines.append(f"{r} {s}\n")
@@ -11,7 +10,6 @@ def create_file_content(M, K, seats):
 
 
 def test_example_case():
-    """Проверяет корректность работы на примере из задания."""
     M, K = 7, 8
     seats = [(1, 1), (6, 6), (5, 5), (6, 7), (4, 4), (2, 2), (3, 3)]
     lines = create_file_content(M, K, seats)
@@ -19,7 +17,7 @@ def test_example_case():
 
 
 def test_tiebreaker_case():
-    """Проверяет выбор самой правой пары при нескольких вариантах в одном ряду."""
+    """Самая правая пара при нескольких вариантах в одном ряду."""
     M, K = 10, 10
     seats = [(10, 1), (10, 5)]
     lines = create_file_content(M, K, seats)
@@ -27,7 +25,7 @@ def test_tiebreaker_case():
 
 
 def test_boundary_case():
-    """Проверяет работу алгоритма на граничных условиях (правый край зала)."""
+    """Граничные условия (правый край зала)."""
     M, K = 100, 50
     seats = [(91, 49)] + [(10, s) for s in range(1, 49)]
     lines = create_file_content(M, K, seats)
@@ -46,7 +44,7 @@ def test_low_row_trap_case():
 
 
 def test_all_value_errors():
-    """Проверяет вызов исключений ValueError на разных некорректных данных."""
+    """Некорректные данные."""
     with pytest.raises(ValueError, match="ожидалось 3 числа, найдено 2"):
         find_best_pair(["10 100\n"])
     with pytest.raises(ValueError, match="нечисловые данные в 'a b c'"):
@@ -62,13 +60,11 @@ def test_all_value_errors():
 
 
 def test_empty_file():
-    """Проверяет корректную обработку пустого файла."""
     with pytest.raises(ValueError, match="Файл пустой."):
         find_best_pair([])
 
 
 def test_main_success(monkeypatch, capsys, tmp_path):
-    """Проверяет успешный запуск main() и правильность вывода."""
     p = tmp_path / "testfile.txt"
     p.write_text("7 7 8\n1 1\n6 6\n5 5\n6 7\n4 4\n2 2\n3 3\n")
     monkeypatch.setattr("sys.argv", ["main.py", str(p)])
@@ -78,7 +74,6 @@ def test_main_success(monkeypatch, capsys, tmp_path):
 
 
 def test_main_no_args(monkeypatch, capsys):
-    """Проверяет реакцию main() на запуск без аргументов."""
     monkeypatch.setattr("sys.argv", ["main.py"])
     with pytest.raises(SystemExit):
         main()
@@ -87,7 +82,6 @@ def test_main_no_args(monkeypatch, capsys):
 
 
 def test_main_file_not_found(monkeypatch, capsys):
-    """Проверяет реакцию main() на несуществующий файл."""
     monkeypatch.setattr("sys.argv", ["main.py", "non_existent_file.txt"])
     with pytest.raises(SystemExit):
         main()
@@ -96,7 +90,7 @@ def test_main_file_not_found(monkeypatch, capsys):
 
 
 def test_main_bad_data(monkeypatch, capsys, tmp_path):
-    """Проверяет реакцию main() на файл с некорректными данными."""
+    """Файл с некорректными данными."""
     p = tmp_path / "badfile.txt"
     p.write_text("1 5 5\n10 10\n")
     monkeypatch.setattr("sys.argv", ["main.py", str(p)])
