@@ -9,6 +9,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="joblib")
 
 
 def create_visualization(filepath):
+    """Создает и сохраняет график кластеризации для данных из файла."""
     try:
         print(f"Обработка файла: {filepath}...")
         points = load_points(filepath)
@@ -17,32 +18,38 @@ def create_visualization(filepath):
         unique_labels = set(labels)
 
         plt.figure(figsize=(10, 8))
-        colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+        cluster_labels = [l for l in unique_labels if l != -1]
+        colors = plt.cm.Spectral(np.linspace(0, 1, len(cluster_labels)))
 
-        for k, col in zip(unique_labels, colors):
+        color_map = {label: color for label, color in zip(cluster_labels, colors)}
+        color_map[-1] = "black"
+
+        for k in unique_labels:
             label = "Аномалии" if k == -1 else f"Кластер {k}"
-            color = "black" if k == -1 else col
 
             class_mask = labels == k
             xy = points[class_mask]
+
             plt.plot(
                 xy[:, 0],
                 xy[:, 1],
                 "o",
-                markerfacecolor=tuple(color),
+                markerfacecolor=color_map[k],
                 markeredgecolor="k",
                 markersize=6,
                 label=label,
             )
 
-        num_clusters = len(unique_labels) - (1 if -1 in unique_labels else 0)
+        num_clusters = len(cluster_labels)
         plt.title(f"Найдено кластеров: {num_clusters}")
         plt.xlabel("Координата X")
         plt.ylabel("Координата Y")
         plt.legend()
         plt.grid(True)
 
-        output_filename = f"{filepath.split('/')[-1].split('.')[0]}_visualization.png"
+        base_name = filepath.split("/")[-1].split("\\")[-1].split(".")[0]
+        output_filename = f"{base_name}_visualization.png"
+
         plt.savefig(output_filename)
         print(f"График сохранен в файл: {output_filename}")
         plt.show()
@@ -55,7 +62,7 @@ def create_visualization(filepath):
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Ошибка: Требуется ровно один аргумент - имя файла.", file=sys.stderr)
-        print("Пример: python visualize.py ../27a.txt", file=sys.stderr)
+        print("Пример: python clusters.py ../27a.txt", file=sys.stderr)
         sys.exit(1)
 
     create_visualization(sys.argv[1])
