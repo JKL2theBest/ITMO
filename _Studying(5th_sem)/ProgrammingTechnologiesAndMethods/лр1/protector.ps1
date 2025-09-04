@@ -53,9 +53,7 @@ if ($Mode -eq "setup") {
         Get-Content $TemplateFile -ErrorAction Stop -TotalCount 1 | Out-Null
         Write-Host "Статус защиты: ВЫКЛЮЧЕНА" -ForegroundColor Green
     } catch {
-        # УЛУЧШЕНИЕ: Показываем, что файл конфигурации защищен
         Write-Host "Статус защиты: ВКЛЮЧЕНА" -ForegroundColor Red
-        Write-Host "Файл '$TemplateFile' защищен."
     }
 
 } elseif ($Mode -eq "on") {
@@ -69,24 +67,14 @@ if ($Mode -eq "setup") {
     $targetFiles = Get-ChildItem -Path . -File -Recurse | Where-Object { $p = $_.Name; $patterns | Where-Object { $p -like $_ } }
     $targetFiles += Get-Item $TemplateFile
 
-    $uniqueFiles = $targetFiles | Get-Unique
-    if (-not $uniqueFiles) {
-        Write-Host "Не найдено файлов для защиты." -ForegroundColor Yellow
-        exit
-    }
-    
-    Write-Host "Следующие файлы будут защищены:"
-    foreach ($file in $uniqueFiles) {
-        Write-Host " - $($file.FullName)"
+    foreach ($file in ($targetFiles | Get-Unique)) {
         $acl = Get-Acl $file.FullName
-        $acl.Access | Where-Object { $_.IdentityReference.Value -eq "Everyone" } | ForEach-Object { $acl.RemoveAccessRule($_) } | Out-Null
-        $permissions = [System.Security.AccessControl.FileSystemRights]"Delete, Write"
-        if ($file.Name -eq $TemplateFile) { $permissions = $permissions -bor "Read" }
+        $permissions = [System.Security.AccessControl.FileSystemRights]::FullControl
         $rule = [System.Security.AccessControl.FileSystemAccessRule]::new($sid, $permissions, "Deny")
         $acl.AddAccessRule($rule)
         Set-Acl -Path $file.FullName -AclObject $acl
     }
-    Write-Host "`nЗащита включена." -ForegroundColor Green
+    Write-Host "Защита включена (полный запрет)." -ForegroundColor Green
 
 } elseif ($Mode -eq "off") {
     Write-Host "Отключение защиты..." -ForegroundColor Yellow
@@ -98,12 +86,16 @@ if ($Mode -eq "setup") {
         exit
     } catch { }
 
-    $permissions_template = [System.Security.AccessControl.FileSystemRights]"Delete, Write, Read"
-    $rule_template = [System.Security.AccessControl.FileSystemAccessRule]::new($sid, $permissions_template, "Deny")
+    # ШАГ 1: Создаем "ключ" - точную копию правила FullControl, которое нужно удалить.
+    $ruleToRemove = [System.Security.AccessControl.FileSystemAccessRule]::new(
+        $sid, [System.Security.AccessControl.FileSystemRights]::FullControl, "Deny"
+    )
     $acl = Get-Acl $TemplateFile
-    $acl.RemoveAccessRuleSpecific($rule_template)
+    # Используем единственно надежный метод для удаления такого мощного правила
+    $acl.RemoveAccessRuleSpecific($ruleToRemove)
     Set-Acl -Path $TemplateFile -AclObject $acl
     
+    # ШАГ 2: Теперь, когда файл доступен, читаем хэш и проверяем пароль
     $salt, $StoredHash = ((Get-Content $TemplateFile -Encoding UTF8)[0]).Split(':')
     $SecurePassword = Read-Host -Prompt "Введите пароль" -AsSecureString
     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword)
@@ -117,27 +109,20 @@ if ($Mode -eq "setup") {
     if ($PasswordHash -ne $StoredHash) {
         Write-Host "Неверный пароль! Возвращаем защиту обратно." -ForegroundColor Red
         $acl = Get-Acl $TemplateFile
-        $acl.AddAccessRule($rule_template)
+        $acl.AddAccessRule($ruleToRemove) # Используем тот же "ключ", чтобы запереть обратно
         Set-Acl -Path $TemplateFile -AclObject $acl
         exit
     }
 
+    # ШАГ 3: Пароль верный. Снимаем защиту со всех остальных файлов.
     Write-Host "Пароль верный. Отключаем защиту..." -ForegroundColor Green
     $patterns = (Get-Content $TemplateFile -Encoding UTF8) | Select-Object -Skip 1
     $targetFiles = Get-ChildItem -Path . -File -Recurse | Where-Object { $p = $_.Name; $patterns | Where-Object { $p -like $_ } }
-    $targetFiles += Get-Item $TemplateFile # Добавляем сам template.tbl для снятия защиты
     
-    $uniqueFiles = $targetFiles | Get-Unique
-    Write-Host "Снимается защита со следующих файлов:"
-    foreach ($file in $uniqueFiles) {
-        Write-Host " - $($file.FullName)"
+    foreach ($file in ($targetFiles | Get-Unique)) {
         $acl = Get-Acl $file.FullName
-        $generic_permissions = [System.Security.AccessControl.FileSystemRights]"Delete, Write"
-        $generic_rule = [System.Security.AccessControl.FileSystemAccessRule]::new($sid, $generic_permissions, "Deny")
-        # Удаляем оба типа правил (с Read и без) на всякий случай
-        $acl.RemoveAccessRuleSpecific($rule_template) | Out-Null
-        $acl.RemoveAccessRuleSpecific($generic_rule) | Out-Null
+        $acl.RemoveAccessRuleSpecific($ruleToRemove) # Удаляем то же самое правило FullControl
         Set-Acl -Path $file.FullName -AclObject $acl
     }
-    Write-Host "`nЗащита отключена." -ForegroundColor Green
+    Write-Host "Защита отключена (полный доступ восстановлен)." -ForegroundColor Green
 }
