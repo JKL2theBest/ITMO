@@ -1,0 +1,135 @@
+/* style.css */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1a202c;
+    background: linear-gradient(135deg, #e6f0ff, #f9f9f9);
+    margin: 0;
+    padding: 20px;
+    background-size: 400% 400%;
+    animation: bg-fade 15s ease-in-out infinite alternate;
+}
+
+@keyframes bg-fade {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.hero {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 0.2em;
+}
+
+h2 {
+    margin-top: 1.5em;
+    color: #2b6cb0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5em;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+li {
+    margin-bottom: 8px;
+}
+
+ul li::before {
+    content: "✓ ";
+    color: #2f855a;
+    font-weight: bold;
+}
+
+.btn-github {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 24px;
+    background-color: #2b6cb0;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-github:hover {
+    background-color: #2c5282;
+    transform: translateY(-2px);
+}
+
+.contacts a, .contacts span {
+    color: #2b6cb0;
+    margin-right: 15px;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.contacts a:hover {
+    color: #1a365d;
+}
+
+.emoji {
+    font-style: normal;
+}
+
+/* --- Стили для защиты контента --- */
+
+/* Применяем защиту от выделения только для экрана */
+@media screen {
+    .content-protection-enabled {
+        /* Запрещает выделение текста */
+        user-select: none;
+        -webkit-user-select: none; /* для Safari */
+        -moz-user-select: none;    /* для Firefox */
+        -ms-user-select: none;     /* для IE/Edge */
+    }
+}
+
+/* При отправке на печать защита отключается, и текст можно выделить/скопировать */
+@media print {
+    body {
+        background: none; /* Убираем фон для экономии чернил */
+    }
+    .container {
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+    .btn-github {
+        display: none; /* Не печатаем кнопку */
+    }
+}
+
+#blinder-overlay {
+    /* Изначально полностью скрыт и не мешает */
+    display: none;
+    
+    /* При активации будет занимать весь экран */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+    /* Максимальный z-index, чтобы быть поверх всего */
+    z-index: 999999;
+}
