@@ -17,7 +17,7 @@ current_user = None
 
 @app.get("/")
 def root():
-    return None  # возвращаем null
+    return None
 
 @app.post("/register")
 def register(data: RegisterRequest):
