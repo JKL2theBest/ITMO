@@ -1,5 +1,3 @@
-/* style.css */
-
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #1a202c;
@@ -90,46 +88,4 @@ ul li::before {
 
 .emoji {
     font-style: normal;
-}
-
-/* --- Стили для защиты контента --- */
-
-/* Применяем защиту от выделения только для экрана */
-@media screen {
-    .content-protection-enabled {
-        /* Запрещает выделение текста */
-        user-select: none;
-        -webkit-user-select: none; /* для Safari */
-        -moz-user-select: none;    /* для Firefox */
-        -ms-user-select: none;     /* для IE/Edge */
-    }
-}
-
-/* При отправке на печать защита отключается, и текст можно выделить/скопировать */
-@media print {
-    body {
-        background: none; /* Убираем фон для экономии чернил */
-    }
-    .container {
-        box-shadow: none;
-        backdrop-filter: none;
-    }
-    .btn-github {
-        display: none; /* Не печатаем кнопку */
-    }
-}
-
-#blinder-overlay {
-    /* Изначально полностью скрыт и не мешает */
-    display: none;
-    
-    /* При активации будет занимать весь экран */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: white;
-    /* Максимальный z-index, чтобы быть поверх всего */
-    z-index: 999999;
 }
