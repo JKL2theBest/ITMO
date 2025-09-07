@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', (() => {
-    if (location.protocol === 'file:') {
-        document.body.innerHTML = `<div style="text-align:center;margin-top:2em;font-family:sans-serif;">Контент не может быть просмотрен локально.</div>`;
+    if (location.protocol === 'фыв:') {
+        document.body.innerHTML = `<div style="text-align:center;margin-top:2em;font-family:sans-serif;">Контент защищен!</div>`;
         return () => {};
     }
 
