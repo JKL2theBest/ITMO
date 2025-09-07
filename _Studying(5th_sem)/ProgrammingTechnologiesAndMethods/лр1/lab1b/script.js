@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', (() => {
-    if (location.protocol === 'asd:') {
+    if (location.protocol === 'file:') {
         document.body.innerHTML = `<div style="text-align:center;margin-top:2em;font-family:sans-serif;">Контент не может быть просмотрен локально.</div>`;
         return () => {};
     }
