@@ -38,7 +38,7 @@ Function Set-FileDenyFullControl {
 # Выполнение режима
 switch ($Mode) {
     "setup" {
-        Write-Host "Первоначальная настройка..."
+        Write-Host "--- Первоначальная настройка ---"
         if (Test-Path $TemplateFile) {
             $confirm = Read-Host "'template.tbl' уже существует. Перезаписать? (y/n)"
             if ($confirm -ne 'y') { Write-Host "Отмена."; exit }
@@ -152,7 +152,7 @@ switch ($Mode) {
         Write-Host "`nЗащита отключена." -ForegroundColor Red
     }
     "watch" {
-        Write-Host "РЕЖИМ СЛЕЖЕНИЯ АКТИВИРОВАН"
+        Write-Host "--- РЕЖИМ СЛЕЖЕНИЯ АКТИВИРОВАН ---"
         if (-not (Test-Path $TemplateFile)) { Write-Host "Ошибка: 'template.tbl' не найден."; exit }
         
         $patterns = (Get-Content $TemplateFile -Encoding UTF8) | Select-Object -Skip 1
