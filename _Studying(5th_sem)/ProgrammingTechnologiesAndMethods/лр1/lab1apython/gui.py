@@ -1,5 +1,3 @@
-# gui.py
-# -*- coding: utf-8 -*-
 import os
 import sys
 import ctypes
@@ -9,7 +7,7 @@ from threading import Thread
 import tkinter as tk
 from tkinter import simpledialog, scrolledtext, messagebox
 
-# --- Блок 1: Определение путей и проверка прав ---
+# --- Определение путей ---
 if getattr(sys, "frozen", False):
     application_path = os.path.dirname(sys.executable)
 else:
@@ -17,7 +15,6 @@ else:
 os.chdir(application_path)
 
 
-# --- Класс приложения ---
 class ProtectorGUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -37,10 +34,10 @@ class ProtectorGUI(tk.Tk):
 
         self._create_widgets()
         self.update_all_statuses()
+        # Для корректного завершения фоновых процессов
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def _create_widgets(self):
-        # ... (код виджетов без изменений)
         frame_status = tk.Frame(self)
         frame_status.pack(pady=10, padx=20, fill="x")
         tk.Label(frame_status, text="Защита файлов:", font=("Arial", 10)).pack(
@@ -57,6 +54,7 @@ class ProtectorGUI(tk.Tk):
             frame_status, text="...", font=("Arial", 10, "bold")
         )
         self.watch_status_value.pack(side="left", padx=5)
+
         frame_buttons = tk.Frame(self)
         frame_buttons.pack(pady=10, padx=20, fill="x")
         self.on_button = tk.Button(
@@ -75,6 +73,7 @@ class ProtectorGUI(tk.Tk):
             height=2,
         )
         self.off_button.pack(side="left", expand=True, fill="x", padx=5)
+
         self.log_button = tk.Button(
             self, text="Показать логи ▼", command=self.toggle_logs
         )
@@ -83,42 +82,8 @@ class ProtectorGUI(tk.Tk):
             self, height=10, state="disabled", font=("Consolas", 9), wrap=tk.WORD
         )
 
-    def run_command(self, mode, args=None, log_output=True):
-        if not os.path.exists(self.protector_exe):
-            self._write_log(
-                f"[Ошибка] Исполняемый файл '{self.protector_exe}' не найден."
-            )
-            return
-
-        command = [self.protector_exe, mode]
-        if args:
-            command.extend(args)
-
-        # ИСПРАВЛЕНИЕ: Добавляем creationflags, чтобы скрыть консольное окно
-        proc = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            creationflags=subprocess.CREATE_NO_WINDOW,
-        )
-
-        output = proc.stdout
-        if log_output and output:
-            self._write_log(output)
-        return output
-
-    def _read_watch_logs(self):
-        for line_bytes in iter(self.watch_process.stdout.readline, b""):
-            if not line_bytes:
-                break
-            line = line_bytes.decode("utf-8", errors="replace")
-            self.after(0, self._write_log, f"Слежение: {line.strip()}")
-        self.watch_process = None
-        self.after(0, self.update_all_statuses)
-
-    def _write_log(self, message):
+    def log(self, message):
+        """Метод для вывода в лог GUI."""
         if self.log_box.winfo_exists():
             self.log_box.config(state="normal")
             timestamp = time.strftime("%H:%M:%S")
@@ -130,7 +95,41 @@ class ProtectorGUI(tk.Tk):
             self.log_box.see(tk.END)
             self.log_box.config(state="disabled")
 
+    def run_process(self, command, capture_output=True):
+        """Для запуска дочерних процессов в скрытом режиме."""
+        return subprocess.run(
+            command,
+            capture_output=capture_output,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+
+    def run_command(self, mode, args=None, log_output=True):
+        """Команды для protector.exe."""
+        if not os.path.exists(self.protector_exe):
+            self.log(f"[Ошибка] Исполняемый файл '{self.protector_exe}' не найден.")
+            return ""
+        command = [self.protector_exe, mode] + (args or [])
+        proc = self.run_process(command)
+        if log_output and proc.stdout:
+            self.log(proc.stdout)
+        return proc.stdout
+
+    def _read_watch_logs(self):
+        """Читает вывод процесса слежения построчно в отдельном потоке."""
+        for line_bytes in iter(self.watch_process.stdout.readline, b""):
+            if not line_bytes:
+                break
+            line = line_bytes.decode("utf-8", errors="replace")
+            self.after(0, self.log, f"Слежение: {line.strip()}")
+        self.watch_process = None
+        self.after(0, self.update_all_statuses)
+
     def update_all_statuses(self):
+        """Обновляет все элементы GUI, запуская проверку статуса в фоновом потоке."""
+
         def task():
             output = self.run_command("status", log_output=False)
 
@@ -140,18 +139,22 @@ class ProtectorGUI(tk.Tk):
                     if output and ":" in output
                     else "Неизвестно"
                 )
-                self.status_value.config(
-                    text=status, fg="red" if status == "ON" else "green"
-                )
                 watch_status = (
                     "ВКЛЮЧЕНО"
                     if self.watch_process and self.watch_process.poll() is None
                     else "ВЫКЛЮЧЕНО"
                 )
-                self.watch_status_value.config(
-                    text=watch_status,
-                    fg="red" if watch_status == "ВКЛЮЧЕНО" else "green",
+
+                status_colors = {"ON": "green", "OFF": "red"}
+                watch_colors = {"ВКЛЮЧЕНО": "green", "ВЫКЛЮЧЕНО": "red"}
+
+                self.status_value.config(
+                    text=status, fg=status_colors.get(status, "black")
                 )
+                self.watch_status_value.config(
+                    text=watch_status, fg=watch_colors.get(watch_status, "black")
+                )
+
                 is_active = status == "ON" or watch_status == "ВКЛЮЧЕНО"
                 self.on_button.config(state="disabled" if is_active else "normal")
                 self.off_button.config(state="normal" if is_active else "disabled")
@@ -161,38 +164,47 @@ class ProtectorGUI(tk.Tk):
         Thread(target=task, daemon=True).start()
 
     def enable_all(self):
-        self._write_log("Команда: ВКЛЮЧИТЬ ВСЕ")
-        # ИСПРАВЛЕНИЕ: Добавляем creationflags, чтобы скрыть консольное окно
+        self.log("Команда: ВКЛЮЧИТЬ ВСЕ")
+        # Запускаем процесс слежения, который будет работать в фоне.
         self.watch_process = subprocess.Popen(
             [self.protector_exe, "watch"],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             creationflags=subprocess.CREATE_NO_WINDOW,
         )
-        self._write_log(f"Запуск слежения (PID: {self.watch_process.pid}).")
+        self.log(f"Запуск слежения (PID: {self.watch_process.pid}).")
+        # Запускаем поток для чтения логов от этого процесса.
         Thread(target=self._read_watch_logs, daemon=True).start()
-        self.after(500, lambda: self.run_command("on"))
-        self.after(1000, self.update_all_statuses)
+
+        # С небольшой задержкой запускаем команду защиты для уже существующих файлов.
+        self.after(100, lambda: self.run_command("on"))
+        self.after(500, self.update_all_statuses)
 
     def disable_all(self):
-        self._write_log("Команда: ВЫКЛЮЧИТЬ ВСЕ")
+        self.log("Команда: ВЫКЛЮЧИТЬ ВСЕ")
         password = simpledialog.askstring(
             "Пароль", "Введите пароль для отключения:", show="*"
         )
         if password is not None:
             output = self.run_command("off_gui", args=[password])
             if "Пароль верный" in output:
-                if self.watch_process and self.watch_process.poll() is None:
-                    self._write_log("Остановка слежения...")
-                    subprocess.run(
-                        ["taskkill", "/F", "/T", "/PID", str(self.watch_process.pid)],
-                        capture_output=True,
-                        creationflags=subprocess.CREATE_NO_WINDOW,
-                    )
-                    self._write_log("Слежение остановлено.")
+                self.stop_watch_process()
         else:
-            self._write_log("Отключение отменено.")
+            self.log("Отключение отменено.")
         self.after(100, self.update_all_statuses)
+
+    def stop_watch_process(self):
+        """Завершает процесс слежения и все его дочерние процессы."""
+        if self.watch_process and self.watch_process.poll() is None:
+            self.log("Остановка слежения...")
+            # taskkill /T /F - убить дерево процессов в Windows.
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(self.watch_process.pid)],
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+            self.watch_process = None
+            self.log("Слежение остановлено.")
 
     def toggle_logs(self):
         if self.log_box.winfo_viewable():
@@ -205,16 +217,14 @@ class ProtectorGUI(tk.Tk):
             self.log_button.config(text="Скрыть логи ▲")
 
     def on_closing(self):
-        if self.watch_process and self.watch_process.poll() is None:
-            subprocess.run(
-                ["taskkill", "/F", "/T", "/PID", str(self.watch_process.pid)],
-                capture_output=True,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
+        """Вызывается при закрытии окна."""
+        self.stop_watch_process()
         self.destroy()
 
 
+# --- Точка входа ---
 def is_admin():
+    """Админ или нет."""
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except Exception:
@@ -223,9 +233,16 @@ def is_admin():
 
 if __name__ == "__main__":
     if not is_admin():
-        ctypes.windll.shell32.ShellExecuteW(
-            None, "runas", sys.executable, " ".join(sys.argv), None, 1
-        )
+        params = " ".join(sys.argv[1:])
+        try:
+            ctypes.windll.shell32.ShellExecuteW(
+                None, "runas", sys.executable, params, None, 1
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Ошибка прав", f"Не удалось запросить права администратора:\n{e}"
+            )
+        sys.exit(0)
     else:
         app = ProtectorGUI()
         app.mainloop()
