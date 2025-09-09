@@ -1,0 +1,181 @@
+# ===================================================================
+# Универсальный .gitignore для учебного репозитория
+#
+# Включает правила для:
+# - Операционных систем (Windows, macOS, Linux)
+# - Популярных IDE и редакторов (VS Code, JetBrains, etc.)
+# - Множества языков программирования (Python, C/C++, Java, JS, etc.)
+# - Игнорирование всех файлов и папок, начинающихся с точки.
+# ===================================================================
+
+# --- Главное правило: Игнорировать все файлы и папки, начинающиеся с точки ---
+# Это покрывает конфигурации IDE, кэши и прочие служебные файлы.
+.*
+.*/
+
+# --- Исключения: НЕ игнорировать важные dot-файлы ---
+# Позволяет хранить в репозитории сам .gitignore и настройки Git.
+!/.gitignore
+!/.gitattributes
+!/.gitmodules
+
+# ===================================================================
+# Файлы операционных систем
+# ===================================================================
+
+# --- Windows ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+__MACOSX
+
+# --- Linux ---
+*~
+.directory
+
+# ===================================================================
+# IDE и редакторы кода
+# ===================================================================
+
+# --- Visual Studio Code ---
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# --- JetBrains (PyCharm, IntelliJ, CLion, WebStorm, etc.) ---
+.idea/
+*.iml
+*.iws
+
+# --- Sublime Text ---
+*.sublime-project
+*.sublime-workspace
+
+# --- Eclipse ---
+.metadata
+.classpath
+.project
+.settings/
+*.tmp
+
+# --- NetBeans ---
+nbproject/
+build/
+nbbuild/
+dist/
+nbdist/
+
+# ===================================================================
+# Языки программирования и фреймворки
+# ===================================================================
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+/venv/
+/env/
+.pytest_cache/
+.tox/
+pip-log.txt
+pip-delete-this-directory.txt
+.eggs/
+dist/
+build/
+*.egg-info/
+
+# --- C / C++ ---
+# Исполняемые файлы и библиотеки
+*.exe
+*.out
+*.app
+*.dll
+*.so
+*.lib
+*.a
+# Объектные файлы и временные файлы компиляции
+*.o
+*.obj
+*.pch
+*.suo
+*.ilk
+*.pdb
+# Папки с результатами сборки
+/build/
+/bin/
+/Debug/
+/Release/
+
+# --- Java ---
+*.class
+*.jar
+*.war
+*.ear
+/target/
+hs_err_pid*
+
+# --- JavaScript / Node.js ---
+# Никогда не добавляйте в репозиторий эту папку!
+node_modules/
+# Логи
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Сборки
+/dist/
+/.dist/
+/build/
+
+# --- C# / .NET ---
+/bin/
+/obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# --- LaTeX ---
+# Временные файлы, создаваемые при компиляции
+*.aux
+*.bbl
+*.blg
+*.log
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+
+# ===================================================================
+# Прочее
+# ===================================================================
+
+# --- Лог-файлы ---
+*.log
+logs/
+
+# --- Сжатые архивы ---
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# --- Локальные переменные окружения (секреты) ---
+# Никогда не храните пароли и API-ключи в Git!
+.env
+.env.local
+.env.*.local
