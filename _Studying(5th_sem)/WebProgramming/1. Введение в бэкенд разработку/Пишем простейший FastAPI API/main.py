@@ -3,26 +3,32 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
     secret: str
 
+
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+
 fake_db = {}
 current_user = None
+
 
 @app.get("/")
 def root():
     return None
 
+
 @app.post("/register")
 def register(data: RegisterRequest):
     fake_db[data.username] = {"password": data.password, "secret": data.secret}
     return {"message": "registered"}
+
 
 @app.post("/login")
 def login(data: LoginRequest):
@@ -31,7 +37,12 @@ def login(data: LoginRequest):
     if not user or user["password"] != data.password:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     current_user = data.username
-    return {"username": data.username, "password": data.password, "token": "dummy_token"}
+    return {
+        "username": data.username,
+        "password": data.password,
+        "token": "dummy_token",
+    }
+
 
 @app.get("/me")
 def me():

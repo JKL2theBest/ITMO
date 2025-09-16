@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Tab Exporter — История экспортов</title>
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body class="options-body">
+
+  <header class="options-header">
+    <img src="icon.png" class="options-icon" alt="Tabs Exporter Icon">
+    <h1>История экспортов</h1>
+  </header>
+
+  <section class="action-buttons">
+    <div class="row">
+      <button id="exportTabs" class="btn">Экспорт</button>
+      <button id="downloadLast" class="btn" disabled>Скачать</button>
+    </div>
+    <div class="row">
+      <input type="file" id="importFile" accept="application/json" class="file-input">
+      <button id="restoreImport" class="btn" disabled>Восстановить</button>
+    </div>
+    <div class="row">
+      <button id="clearHistory" class="btn danger">Очистить историю</button>
+    </div>
+  </section>
+
+  <section class="export-history">
+    <div id="exportList">Загрузка…</div>
+  </section>
+
+  <script type="module" src="options.js"></script>
+
+</body>
+
+</html>

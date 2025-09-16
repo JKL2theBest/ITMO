@@ -1,0 +1,51 @@
+<head>
+    <title>Анти-кросс-браузерность</title>
+    <style>
+        /* Шрифты */
+        p {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+        }
+
+        h1 {
+            font-family: "Times New Roman", serif;
+            font-size: 32px;
+        }
+
+        /* градиент не поддерживается с IE9 и меньше (вроде) */
+        div {
+            background: linear-gradient(10deg, blue, cyan);
+            outline: double 3px red;
+            outline-offset: -75px;
+            margin: 25px;
+            box-shadow: 0 0 30px 5px rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            width: 300px;
+            height: 5vh;
+            text-align: center;
+            line-height: 100px;
+            font-size: 18px;
+            font-family: 'Verdana', sans-serif;
+            border-radius: 50% 25%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Анти-кросс-браузерность*</h1>
+    <div>
+        <p>Различия шрифтов минимальные, но есть (Test: Te)</p>
+        <p>и использование обводки (в IE отображается правильно - иронично)</p>
+        <p>так же градиент не должен правильно отображаться в очень старых браузерах</p>
+    </div>
+
+    <div class="content">
+        Разница в выравнивании текста и сочетании border-raduis и outline
+    </div>
+
+</body>

