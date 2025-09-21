@@ -19,7 +19,7 @@
 2.  Откройте файл `collector.py` и убедитесь, что `SERVER_URL` указывает на правильный API-эндпоинт.
 3.  Запустите сборку:
     ```bash
-    pyinstaller --onefile --noconsole --name SecurityScanner_Web --icon="icon.ico" collector_web.py
+    pyinstaller --onefile --noconsole --name SecurityScanner_Web --icon="icon.ico" collector.py
     ```
 
 ## Использование
