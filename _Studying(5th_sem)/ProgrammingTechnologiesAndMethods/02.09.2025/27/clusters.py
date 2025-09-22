@@ -18,7 +18,7 @@ def create_visualization(filepath):
         unique_labels = set(labels)
 
         plt.figure(figsize=(10, 8))
-        cluster_labels = [l for l in unique_labels if l != -1]
+        cluster_labels = [label for label in unique_labels if label != -1]
         colors = plt.cm.Spectral(np.linspace(0, 1, len(cluster_labels)))
 
         color_map = {label: color for label, color in zip(cluster_labels, colors)}
