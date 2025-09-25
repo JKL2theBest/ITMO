@@ -9,7 +9,7 @@ import requests
 
 # --- КОНФИГУРАЦИЯ ---
 # Формат: \\<IP-АДРЕС_СЕРВЕРА>\<ИМЯ_ОБЩЕЙ_ПАПКИ>
-NETWORK_SHARE_PATH = r"\\192.168.0.163\\CollectedData"
+NETWORK_SHARE_PATH = r"\\26.21.140.246\\CollectedData"
 
 
 def collect_system_info():
