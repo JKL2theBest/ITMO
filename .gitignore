@@ -226,3 +226,29 @@ logs/
 *.psd
 *.ai
 *.fig
+
+
+# IDA Pro temporary files
+*.idb
+*.i64
+*.id0
+*.id1
+*.id2
+*.id3
+*.til
+*.nam
+*.log
+*.idc
+*.idc.bak
+
+# Backup и autosave
+*.idb.bak
+*.i64.bak
+*.id0.bak
+*.id1.bak
+*.id2.bak
+*.id3.bak
+
+# Папки проектов IDA
+*.idaproj/
+*.i64p/
