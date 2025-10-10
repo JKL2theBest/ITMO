@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:17
+    container_name: postgres_news_db
+    environment:
+      POSTGRES_USER: news_muhammet
+      POSTGRES_PASSWORD: news_password
+      POSTGRES_DB: news_db
+    ports:
+      - "5432:5432" # Можно поменять
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:
