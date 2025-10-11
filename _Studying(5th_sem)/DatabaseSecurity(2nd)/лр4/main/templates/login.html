@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход в систему</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container login-container">
+        <h1>Вход в систему проката</h1>
+        <form id="login-form">
+            <input type="text" id="username" placeholder="Имя пользователя" required>
+            <input type="password" id="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+        <p id="error"></p>
+
+        <div id="user-guide">
+            <h4>Тестовые пользователи:</h4>
+            <ul>
+                <li>Клиент: <code>anna_client</code> / <code>clientpass123</code></li>
+                <li>Техник: <code>sergey_tech</code> / <code>techpass456</code></li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('login-form');
+        const errorP = document.getElementById('error');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorP.textContent = '';
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {'Authorization': 'Basic ' + btoa(username + ':' + password)}
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('jwt_token', data.token);
+                    if (username.includes('client')) {
+                        window.location.href = '/ui/client';
+                    } else if (username.includes('tech')) {
+                        window.location.href = '/ui/technician';
+                    }
+                } else {
+                    errorP.textContent = 'Ошибка: ' + data.message;
+                }
+            } catch (error) {
+                errorP.textContent = 'Сетевая ошибка или сервер не отвечает.';
+            }
+        });
+    </script>
+</body>
+</html>

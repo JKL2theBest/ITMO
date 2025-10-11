@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель техника</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Панель техника</h1>
+        <button id="load-data">Загрузить журнал обслуживания</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        const loadButton = document.getElementById('load-data');
+        const resultDiv = document.getElementById('result');
+        const token = localStorage.getItem('jwt_token');
+
+        if (!token) {
+            window.location.href = '/ui/login';
+        }
+
+        loadButton.addEventListener('click', async () => {
+            resultDiv.innerHTML = '<p>Загрузка...</p>';
+            try {
+                const response = await fetch('/api/tech/maintenance_log', {
+                    method: 'GET',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (response.status === 401) {
+                     window.location.href = '/ui/login';
+                     return;
+                }
+                
+                const data = await response.json();
+
+                if (response.ok) {
+                    let table = '<table><tr><th>ID самоката</th><th>Модель</th><th>Тип работ</th><th>Описание</th><th>Дата</th></tr>';
+                    data.forEach(log => {
+                        table += `<tr>
+                            <td>${log.scooterid}</td>
+                            <td>${log.model}</td>
+                            <td>${log['Тип работ']}</td>
+                            <td>${log['Описание работ']}</td>
+                            <td>${new Date(log['Дата обслуживания']).toLocaleDateString('ru-RU')}</td>
+                        </tr>`;
+                    });
+                    table += '</table>';
+                    resultDiv.innerHTML = table;
+                } else {
+                    resultDiv.innerHTML = `<p style="color:red;">Ошибка: ${data.message}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color:red;">Сетевая ошибка.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
