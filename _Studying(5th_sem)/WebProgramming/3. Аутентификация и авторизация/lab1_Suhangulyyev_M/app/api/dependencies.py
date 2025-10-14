@@ -16,6 +16,7 @@ from app.repositories.sqlalchemy.comment import CommentRepository
 from app.repositories.sqlalchemy.news import NewsRepository
 from app.repositories.sqlalchemy.user import UserRepository
 from app.schemas.role import UserRole
+from app.services.auth import AuthService
 from app.services.comments import CommentService
 from app.services.news import NewsService
 from app.services.users import UserService
@@ -53,8 +54,16 @@ def get_user_service(user_repo: UserRepoDep) -> UserService:
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
 
-def get_news_service(news_repo: NewsRepoDep, user_repo: UserRepoDep) -> NewsService:
-    return NewsService(news_repo=news_repo, user_repo=user_repo)
+def get_auth_service(user_repo: UserRepoDep) -> AuthService:
+    return AuthService(user_repo)
+
+
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+
+
+def get_news_service(news_repo: NewsRepoDep) -> NewsService:
+    """Возвращает сервис для новостей."""
+    return NewsService(news_repo=news_repo)
 
 
 NewsServiceDep = Annotated[NewsService, Depends(get_news_service)]
@@ -62,14 +71,9 @@ NewsServiceDep = Annotated[NewsService, Depends(get_news_service)]
 
 def get_comment_service(
     comment_repo: CommentRepoDep,
-    user_repo: UserRepoDep,
-    news_repo: NewsRepoDep,
 ) -> CommentService:
-    return CommentService(
-        comment_repo=comment_repo,
-        user_repo=user_repo,
-        news_repo=news_repo,
-    )
+    """Возвращает сервис для комментариев."""
+    return CommentService(comment_repo=comment_repo)
 
 
 CommentServiceDep = Annotated[CommentService, Depends(get_comment_service)]

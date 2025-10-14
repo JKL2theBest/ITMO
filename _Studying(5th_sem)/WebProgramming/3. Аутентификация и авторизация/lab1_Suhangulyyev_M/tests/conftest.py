@@ -1,157 +1,180 @@
 import asyncio
-from typing import AsyncGenerator, Callable, Tuple
-from uuid import uuid4
+import uuid
+from typing import AsyncGenerator
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy import text, select
+from sqlalchemy import select, text
+from sqlalchemy.engine import create_engine as create_sync_engine
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
 from sqlalchemy.pool import NullPool
-from sqlalchemy.engine import create_engine as create_sync_engine
+from fastapi import FastAPI
 
-import os
 from alembic import command
 from alembic.config import Config
+
 from app.core.config import settings
 from app.db.session import get_db_session
 from app.main import app
 from app.models.user import User
 from app.schemas.role import UserRole
 
-# --- НАСТРОЙКА ТЕСТОВОЙ БД ---
-TEST_DATABASE_URL_ASYNC = settings.TEST_DATABASE_URL
-TEST_DATABASE_URL_SYNC = settings.SYNC_TEST_DATABASE_URL
+# --- Настройка БД и миграций ---
 
-engine_test_async = create_async_engine(TEST_DATABASE_URL_ASYNC, poolclass=NullPool)
+engine_test = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
 async_session_maker = async_sessionmaker(
-    engine_test_async, class_=AsyncSession, expire_on_commit=False
+    engine_test, class_=AsyncSession, expire_on_commit=False
 )
-
-
-@pytest.fixture(scope="function")
-def db_session_test() -> async_sessionmaker[AsyncSession]:
-    """Фикстура, предоставляющая sessionmaker для тестовой БД."""
-    return async_session_maker
-
-
-@pytest.fixture(scope="session", autouse=True)
-def apply_migrations():
-    os.environ["TESTING"] = "1"
-
-    db_name = TEST_DATABASE_URL_SYNC.split("/")[-1]
-    db_url_for_creation = TEST_DATABASE_URL_SYNC.replace(f"/{db_name}", "/postgres")
-
-    sync_engine = create_sync_engine(db_url_for_creation, isolation_level="AUTOCOMMIT")
-    with sync_engine.connect() as conn:
-        conn.execute(text(f"DROP DATABASE IF EXISTS {db_name} WITH (FORCE)"))
-        conn.execute(text(f"CREATE DATABASE {db_name}"))
-    sync_engine.dispose()
-
-    config = Config("alembic.ini")
-    command.upgrade(config, "head")
-
-    yield
-
-    sync_engine = create_sync_engine(db_url_for_creation, isolation_level="AUTOCOMMIT")
-    with sync_engine.connect() as conn:
-        conn.execute(text(f"DROP DATABASE IF EXISTS {db_name} WITH (FORCE)"))
-    sync_engine.dispose()
-    del os.environ["TESTING"]
-
-
-@pytest_asyncio.fixture(scope="function")
-async def client() -> AsyncGenerator[AsyncClient, None]:
-    async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
-        async with async_session_maker() as session:
-            yield session
-
-    app.dependency_overrides[get_db_session] = override_get_async_session
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as c:
-        yield c
-    app.dependency_overrides.clear()
-
-
-@pytest_asyncio.fixture(scope="function")
-async def authenticated_client_factory() -> AsyncGenerator[Callable, None]:
-    clients = []
-
-    async def _create_client(
-        role: UserRole,
-        email: str | None = None,
-        password: str | None = None,
-    ) -> Tuple[AsyncClient, dict]:
-        async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
-            async with async_session_maker() as session:
-                yield session
-
-        app.dependency_overrides[get_db_session] = override_get_async_session
-        transport = ASGITransport(app=app)
-        auth_client = AsyncClient(transport=transport, base_url="http://test")
-        clients.append(auth_client)
-
-        email = email or f"{uuid4()}@test.com"
-        password = password or "password123"
-        user_data = {"name": f"{role.value}_user", "email": email, "password": password}
-
-        register_response = await auth_client.post(
-            "/api/v1/auth/register", json=user_data
-        )
-        assert register_response.status_code == 201, "Failed to register test user"
-
-        registered_user_data = register_response.json()
-
-        if role != UserRole.USER:
-            async with async_session_maker() as session:
-                result = await session.execute(select(User).where(User.email == email))
-                user_to_update = result.scalar_one_or_none()
-                assert (
-                    user_to_update is not None
-                ), "Test user not found in DB after registration"
-                user_to_update.role = role
-                await session.commit()
-
-        login_data = {"username": email, "password": password}
-        response = await auth_client.post("/api/v1/auth/login", data=login_data)
-        assert response.status_code == 200, "Failed to login test user"
-        tokens = response.json()
-        access_token = tokens["access_token"]
-
-        auth_client.headers["Authorization"] = f"Bearer {access_token}"
-        return auth_client, registered_user_data
-
-    yield _create_client
-
-    for c in clients:
-        await c.aclose()
-    app.dependency_overrides.clear()
-
-
-@pytest_asyncio.fixture(scope="function")
-async def user_client(authenticated_client_factory: Callable):
-    client, _ = await authenticated_client_factory(UserRole.USER)
-    return client
-
-
-@pytest_asyncio.fixture(scope="function")
-async def author_client(authenticated_client_factory: Callable):
-    client, _ = await authenticated_client_factory(UserRole.VERIFIED_AUTHOR)
-    return client
-
-
-@pytest_asyncio.fixture(scope="function")
-async def admin_client(authenticated_client_factory: Callable):
-    client, _ = await authenticated_client_factory(UserRole.ADMIN)
-    return client
 
 
 @pytest.fixture(scope="session")
 def event_loop():
+    """Цикл обработки событий в рамках сеанса."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def apply_migrations():
+    """Применяет миграции один раз за сеанс тестирования."""
+    config = Config("alembic.ini")
+    sync_engine = create_sync_engine(settings.SYNC_DATABASE_URL)
+    with sync_engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+    command.upgrade(config, "head")
+    yield
+    with sync_engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+    sync_engine.dispose()
+
+
+# --- Фикстуры приложения и клиента ---
+
+
+@pytest_asyncio.fixture(scope="function")
+async def test_app() -> AsyncGenerator[FastAPI, None]:
+    """Фикстура для создания экземпляра тестового приложения с переопределенной зависимостью от БД."""
+
+    async def override_get_db_session():
+        async with async_session_maker() as session:
+            yield session
+
+    app.dependency_overrides[get_db_session] = override_get_db_session
+    yield app
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
+    """Фикстура для неавторизованного HTTP клиента."""
+    async with ASGITransport(app=test_app) as transport:
+        async with AsyncClient(transport=transport, base_url="http://test") as c:
+            yield c
+
+
+@pytest_asyncio.fixture(scope="function")
+async def db_session_test() -> AsyncGenerator[AsyncSession, None]:
+    """Фикстура для прямого получения сессии для тестов."""
+    async with async_session_maker() as session:
+        yield session
+
+
+@pytest_asyncio.fixture(scope="function")
+async def user_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
+    """Фикстура для авторизованного клиента USER."""
+    async with ASGITransport(app=test_app) as transport:
+        async with AsyncClient(transport=transport, base_url="http://test") as c:
+            user_data = {
+                "name": "Test User",
+                "email": f"{uuid.uuid4()}@test.com",
+                "password": "password123",
+            }
+            register_response = await c.post("/api/v1/auth/register", json=user_data)
+            assert register_response.status_code == 201, register_response.text
+
+            login_response = await c.post(
+                "/api/v1/auth/login",
+                data={
+                    "username": user_data["email"],
+                    "password": user_data["password"],
+                },
+            )
+            tokens = login_response.json()
+            c.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+            c.user_data = register_response.json()
+            c.refresh_token = tokens["refresh_token"]
+            yield c
+
+
+@pytest_asyncio.fixture(scope="function")
+async def author_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
+    """Фикстура для авторизованного клиента VERIFIED_AUTHOR."""
+    async with ASGITransport(app=test_app) as transport:
+        async with AsyncClient(transport=transport, base_url="http://test") as c:
+            user_data = {
+                "name": "Test Author",
+                "email": f"{uuid.uuid4()}@test.com",
+                "password": "password123",
+            }
+            register_response = await c.post("/api/v1/auth/register", json=user_data)
+            assert register_response.status_code == 201, register_response.text
+            user_id = register_response.json()["id"]
+
+            async with async_session_maker() as session:
+                result = await session.execute(select(User).where(User.id == user_id))
+                user_to_update = result.scalar_one()
+                user_to_update.role = UserRole.VERIFIED_AUTHOR
+                await session.commit()
+
+            login_response = await c.post(
+                "/api/v1/auth/login",
+                data={
+                    "username": user_data["email"],
+                    "password": user_data["password"],
+                },
+            )
+            tokens = login_response.json()
+            c.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+            c.user_data = register_response.json()
+            c.refresh_token = tokens["refresh_token"]
+            yield c
+
+
+@pytest_asyncio.fixture(scope="function")
+async def admin_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
+    """Фикстура для авторизованного клиента ADMIN."""
+    async with ASGITransport(app=test_app) as transport:
+        async with AsyncClient(transport=transport, base_url="http://test") as c:
+            user_data = {
+                "name": "Test Admin",
+                "email": f"{uuid.uuid4()}@test.com",
+                "password": "password123",
+            }
+            register_response = await c.post("/api/v1/auth/register", json=user_data)
+            assert register_response.status_code == 201, register_response.text
+            user_id = register_response.json()["id"]
+
+            async with async_session_maker() as session:
+                result = await session.execute(select(User).where(User.id == user_id))
+                user_to_update = result.scalar_one()
+                user_to_update.role = UserRole.ADMIN
+                await session.commit()
+
+            login_response = await c.post(
+                "/api/v1/auth/login",
+                data={
+                    "username": user_data["email"],
+                    "password": user_data["password"],
+                },
+            )
+            tokens = login_response.json()
+            c.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+            c.user_data = register_response.json()
+            c.refresh_token = tokens["refresh_token"]
+            yield c

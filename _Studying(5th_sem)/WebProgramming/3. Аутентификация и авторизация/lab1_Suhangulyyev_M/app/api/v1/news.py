@@ -8,14 +8,21 @@ from app.api.dependencies import (
     NewsRepoDep,
     CurrentUserDep,
     get_news_for_update,
+    require_role,
 )
+from app.schemas.role import UserRole
+from app.models.user import User
 
 router = APIRouter(prefix="/news", tags=["news"])
 
 
 @router.post("/", response_model=NewsResponse, status_code=status.HTTP_201_CREATED)
 async def create_news(
-    news_data: NewsCreateIn, service: NewsServiceDep, current_user: CurrentUserDep
+    news_data: NewsCreateIn,
+    service: NewsServiceDep,
+    current_user: Annotated[
+        User, Depends(require_role([UserRole.ADMIN, UserRole.VERIFIED_AUTHOR]))
+    ],
 ):
     """Создать новость (только верифицированный автор или админ)."""
     return await service.create_news(news_data, current_user)

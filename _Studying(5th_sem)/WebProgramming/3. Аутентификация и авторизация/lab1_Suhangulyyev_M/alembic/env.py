@@ -1,4 +1,3 @@
-import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -13,12 +12,7 @@ from app.models import *  # noqa: F403 (ruff)
 config = context.config
 
 
-if os.environ.get("TESTING"):
-    # Если в тестовой среде, используем URL тестовой базы данных
-    config.set_main_option("sqlalchemy.url", settings.SYNC_TEST_DATABASE_URL)
-else:
-    # Иначе, используем обычный синхронный URL для alembic
-    config.set_main_option("sqlalchemy.url", settings.SYNC_DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.SYNC_DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

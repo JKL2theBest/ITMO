@@ -12,9 +12,6 @@ class Settings(BaseSettings):
     GITHUB_CALLBACK_URL: str
     REFRESH_TOKEN_EXPIRE_DAYS: int
 
-    TEST_DATABASE_URL: str
-    SYNC_TEST_DATABASE_URL: str
-
     model_config = SettingsConfigDict(env_file=".env")
 
 

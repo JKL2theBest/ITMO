@@ -23,8 +23,8 @@
 Проект сохраняет многослойную архитектуру (Controller-Service-Repository), которая была расширена для поддержки аутентификации:
 
 *   **API / Controllers (`app/api/`)**: Добавлен новый роутер `auth.py` для всех эндпоинтов, связанных с аутентификацией. В остальные роутеры добавлена логика проверки токенов и прав доступа с помощью системы зависимостей FastAPI (`Depends`).
-*   **Services (`app/services/`)**: В сервисы добавлена бизнес-логика, связанная с правами доступа (проверка роли пользователя перед созданием новости и т.п.).
-*   **Core (`app/core/`)**: Создан новый модуль `security.py`, инкапсулирующий всю логику работы с JWT, хешированием паролей (Argon2) и генерацией токенов.
+*   **Services (`app/services/`)**: Добавлен `AuthService` и уточнена бизнес-логика в других сервисах, связанная с правами доступа.
+*   **Core (`app/core/`)**: Создан модуль `security.py`, инкапсулирующий всю логику работы с JWT, хешированием паролей (Argon2) и генерацией токенов.
 *   **Dependencies (`app/api/dependencies.py`)**: Этот модуль стал центральным элементом системы безопасности. В нем реализованы зависимости для:
     *   Получения текущего пользователя из JWT (`get_current_user`).
     *   Проверки ролей (`require_role`).
@@ -45,7 +45,7 @@
     git clone https://github.com/itmo-webdev/lab1_Suhangulyyev_M.git
     cd lab1_Suhangulyyev_M
     ```
-2.  Создать и заполнить файл `.env` в корне проекта, используя предоставленный шаблон. **Обязательно замените `github_client_id` и `github_client_secret` на свои ключи**, полученные при регистрации OAuth-приложения в GitHub.
+2.  Создать и заполнить файл `.env` в корне проекта по шаблону ниже. **Обязательно замените `GITHUB_CLIENT_ID` и `GITHUB_CLIENT_SECRET` на свои ключи**, полученные при регистрации OAuth-приложения в GitHub.
     ```env
     # Асинхронный URL для FastAPI
     DATABASE_URL="postgresql+asyncpg://news_muhammet:news_password@localhost:5432/news_db"
@@ -63,10 +63,6 @@
     GITHUB_CLIENT_ID="your_github_client_id"
     GITHUB_CLIENT_SECRET="your_github_client_secret"
     GITHUB_CALLBACK_URL="http://127.0.0.1:8000/api/v1/auth/github/callback"
-
-    # Test Databases (для pytest)
-    TEST_DATABASE_URL="postgresql+asyncpg://news_muhammet:news_password@localhost:5432/news_db_test"
-    SYNC_TEST_DATABASE_URL="postgresql+psycopg2://news_muhammet:news_password@localhost:5432/news_db_test"
     ```
 
 3.  Запустить базу данных PostgreSQL с помощью Docker:
@@ -74,11 +70,10 @@
     docker-compose up -d
     ```
 
-4.  Установить все зависимости:
+4.  Установить все зависимости (включая зависимости для разработки и тестов):
     ```bash
     poetry install --with dev
     ```
-    (dev - для автотестирования)
 
 5.  Применить миграции Alembic для создания схемы БД и наполнения ее моковыми данными:
     ```bash
@@ -91,133 +86,107 @@
     ```
     Приложение будет доступно по адресу `http://127.0.0.1:8000`, а интерактивная документация (Swagger UI) — по `http://127.0.0.1:8000/docs`.
 
+---
+
 #### 1.4. Тестирование и проверка результата
 
 **Автоматизированное тестирование:**
 
-Проект покрыт набором из **36 интеграционных тестов** с использованием `pytest`, `httpx` и `pytest-mock`. Тесты проверяют не только успешные сценарии, но и обработку ошибок, права доступа для разных ролей и логику OAuth с помощью моков.
+Проект покрыт набором из **35 интеграционных тестов** с использованием `pytest`, `httpx` и `pytest-mock`. Тесты проверяют основной функционал, обработку ошибок, права доступа для разных ролей и логику OAuth.
 
 Для запуска тестов используется команда:
 ```bash
 poetry run pytest
 ```
 
-**Ручная проверка (Примеры `curl`):**
+**Ручная проверка (Однострочные `curl` для Windows CMD):**
 
-Ниже приведен полный сценарий взаимодействия с API через `curl`. Команды демонстрируют основной функционал, включая регистрацию, аутентификацию и управление контентом.
+Ниже приведен полный сценарий взаимодействия с API через `curl` в командной строке Windows (`cmd.exe`). Сценарии самодостаточны и не зависят друг от друга.
 
-**1. Сценарий Обычного Пользователя (`USER`)**
+**ВАЖНОЕ ПРАВИЛО:** После выполнения команды, которая возвращает `access_token` или `id`, вам нужно будет **вручную скопировать** это значение (без кавычек) и **вставить** его в следующую команду, где есть соответствующий placeholder.
+
+---
+
+### Сценарий 1: Обычный Пользователь (`USER`)
 
 ```bash
-# 1.1. Регистрация нового пользователя
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/auth/register' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "name": "Regular User",
-  "email": "user@example.com",
-  "password": "strongpassword"
-}'
+:: 1.1. Регистрация нового пользователя 'testuser-curl@example.com'
+curl -X POST "http://127.0.0.1:8000/api/v1/auth/register" -H "Content-Type: application/json" -d "{ \"name\": \"CURL Test User\", \"email\": \"testuser-curl@example.com\", \"password\": \"strongpassword123\" }"
 
-# 1.2. Логин для получения токенов
-# В ответе скопируйте значения "access_token" и "refresh_token".
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/auth/login' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'username=user@example.com&password=strongpassword'
+:: 1.2. Вход в систему. ВАЖНО: Скопируйте "access_token" и "refresh_token" из ответа для следующих шагов.
+curl -X POST "http://127.0.0.1:8000/api/v1/auth/login" -H "Content-Type: application/x-www-form-urlencoded" -d "username=testuser-curl@example.com&password=strongpassword123"
 
-# 1.3. Попытка создать новость (неуспешно)
-# Ожидаемый результат: ошибка 403 Forbidden, т.к. роль 'USER'.
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/news/' \
-  -H "Authorization: Bearer <PASTE_USER_ACCESS_TOKEN_HERE>" \
-  -H 'Content-Type: application/json' \
-  -d '{"title": "My First News", "content": {}}'
+:: 1.3. Попытка создать новость (ожидается ошибка 403 Forbidden). Замените <USER_TOKEN> на скопированный 'access_token'.
+curl -X POST "http://127.0.0.1:8000/api/v1/news/" -H "Authorization: Bearer <USER_TOKEN>" -H "Content-Type: application/json" -d "{ \"title\": \"My First News\", \"content\": {\"text\": \"some text\"} }"
+
+:: 1.4. Получение списка новостей. ВАЖНО: Скопируйте 'id' первой новости из списка (например, "409a1ca6-e94a-4605-9fe9-20937bb68b62").
+curl -X GET "http://127.0.0.1:8000/api/v1/news/" -H "Authorization: Bearer <USER_TOKEN>"
+
+:: 1.5. Создание комментария. ВАЖНО: Замените <NEWS_ID> и скопируйте 'id' созданного комментария.
+curl -X POST "http://127.0.0.1:8000/api/v1/comments/" -H "Authorization: Bearer <USER_TOKEN>" -H "Content-Type: application/json" -d "{ \"text\": \"This is my first comment!\", \"news_id\": \"<NEWS_ID>\" }"
+
+:: 1.6. Обновление своего комментария. Замените <COMMENT_ID> на ID из шага 1.5.
+curl -X PATCH "http://127.0.0.1:8000/api/v1/comments/<COMMENT_ID>" -H "Authorization: Bearer <USER_TOKEN>" -H "Content-Type: application/json" -d "{ \"text\": \"I have updated my comment.\" }"
+
+:: 1.7. Удаление своего комментария.
+curl -X DELETE "http://127.0.0.1:8000/api/v1/comments/<COMMENT_ID>" -H "Authorization: Bearer <USER_TOKEN>"
+
+:: 1.8. Обновление токенов. ВАЖНО: Замените <USER_REFRESH_TOKEN> и скопируйте новый 'refresh_token' из ответа.
+curl -X POST "http://127.0.0.1:8000/api/v1/auth/refresh" -H "Content-Type: application/json" -d "{ \"refresh_token\": \"<USER_REFRESH_TOKEN>\" }"
+
+:: 1.9. Выход из системы. Замените <NEW_REFRESH_TOKEN> на токен из шага 1.8.
+curl -X POST "http://127.0.0.1:8000/api/v1/auth/logout" -H "Content-Type: application/json" -d "{ \"refresh_token\": \"<NEW_REFRESH_TOKEN>\" }"
 ```
 
-**2. Сценарий Верифицированного Автора (`VERIFIED_AUTHOR`)**
+---
 
-*Миграции уже создают пользователя `author@example.com` с ролью `VERIFIED_AUTHOR` и паролем `dummy_password`. Используйте эти данные для входа.*
+### Сценарий 2: Верифицированный Автор (`VERIFIED_AUTHOR`)
 
 ```bash
-# 2.1. Логин от имени автора для получения токенов.
-# Скопируйте "access_token" из ответа для последующих команд.
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/auth/login' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'username=author@example.com&password=dummy_password'
+:: 2.1. Вход в систему от имени автора ('author@example.com', пароль 'dummy_password'). ВАЖНО: Скопируйте 'access_token' автора.
+curl -X POST "http://127.0.0.1:8000/api/v1/auth/login" -H "Content-Type: application/x-www-form-urlencoded" -d "username=author@example.com&password=dummy_password"
 
-# 2.2. Создание новости от имени автора
-# Скопируйте "id" созданной новости из JSON-ответа.
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/news/' \
-  -H "Authorization: Bearer <PASTE_AUTHOR_ACCESS_TOKEN_HERE>" \
-  -H 'Content-Type: application/json' \
-  -d '{"title": "An Authoritative Article", "content": {"text": "Content by a verified author."}}'
+:: 2.2. Создание новой новости. ВАЖНО: Скопируйте 'id' созданной новости (например, "f8d6a4c2-...").
+curl -X POST "http://127.0.0.1:8000/api/v1/news/" -H "Authorization: Bearer <AUTHOR_TOKEN>" -H "Content-Type: application/json" -d "{ \"title\": \"Article by Author\", \"content\": {\"body\": \"This is a protected article.\"} }"
 
-# 2.3. Редактирование своей новости
-# Вставьте ID новости в URL.
-curl -X 'PATCH' 'http://127.0.0.1:8000/api/v1/news/<PASTE_NEWS_ID_HERE>' \
-  -H "Authorization: Bearer <PASTE_AUTHOR_ACCESS_TOKEN_HERE>" \
-  -H 'Content-Type: application/json' \
-  -d '{"title": "An Updated Title"}'
+:: 2.3. Обновление своей новости. Замените <NEWS_ID_FROM_2.2> на ID из шага 2.2.
+curl -X PATCH "http://127.0.0.1:8000/api/v1/news/<NEWS_ID_FROM_2.2>" -H "Authorization: Bearer <AUTHOR_TOKEN>" -H "Content-Type: application/json" -d "{ \"title\": \"Updated Title by Author\" }"
 
-# 2.4. Создание комментария к новости
-# Скопируйте "id" созданного комментария.
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/comments/' \
-  -H "Authorization: Bearer <PASTE_AUTHOR_ACCESS_TOKEN_HERE>" \
-  -H 'Content-Type: application/json' \
-  -d '{"text": "My first comment!", "news_id": "<PASTE_NEWS_ID_HERE>"}'
-
-# 2.5. Удаление своей новости (вместе с комментарием, благодаря cascade)
-curl -X 'DELETE' 'http://127.0.0.1:8000/api/v1/news/<PASTE_NEWS_ID_HERE>' \
-  -H "Authorization: Bearer <PASTE_AUTHOR_ACCESS_TOKEN_HERE>"
+:: 2.4. Удаление своей новости. Замените <NEWS_ID_FROM_2.2> на ID из шага 2.2.
+curl -X DELETE "http://127.0.0.1:8000/api/v1/news/<NEWS_ID_FROM_2.2>" -H "Authorization: Bearer <AUTHOR_TOKEN>"
 ```
 
-**3. Сценарий Администратора (`ADMIN`)**
+---
 
-*Этот сценарий демонстрирует права админа на управление **чужим** контентом, созданным автором на шаге 2.2.*
-
-```bash
-# 3.1. Логин от имени администратора
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/auth/login' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'username=admin@example.com&password=admin_password'
-# Скопируйте "access_token" администратора.
-
-# 3.2. Администратор редактирует чужую новость
-# Вставьте ID новости, созданной автором на шаге 2.2.
-curl -X 'PATCH' 'http://127.0.0.1:8000/api/v1/news/<PASTE_NEWS_ID>' \
-  -H "Authorization: Bearer <PASTE_ADMIN_ACCESS_TOKEN_HERE>" \
-  -H 'Content-Type: application/json' \
-  -d '{"title": "Title Edited by Admin"}'
-
-# 3.3. Администратор удаляет чужую новость
-curl -X 'DELETE' 'http://127.0.0.1:8000/api/v1/news/<PASTE_NEWS_ID>' \
-  -H "Authorization: Bearer <PASTE_ADMIN_ACCESS_TOKEN_HERE>"
-
-# 3.4. Администратор удаляет другого пользователя (например, user@example.com)
-# Сначала нужно получить ID пользователя. Сделайте GET /api/v1/users/, найдите ID и вставьте его.
-curl -X 'DELETE' 'http://127.0.0.1:8000/api/v1/users/<PASTE_USER_ID_TO_DELETE>' \
-  -H "Authorization: Bearer <PASTE_ADMIN_ACCESS_TOKEN_HERE>"
-```
-
-**4. Управление сессиями и GitHub**
+### Сценарий 3: Администратор (`ADMIN`)
 
 ```bash
-# 4.1. Просмотр своих активных сессий
-curl -X 'GET' 'http://127.0.0.1:8000/api/v1/auth/sessions/me' \
-  -H "Authorization: Bearer <PASTE_YOUR_ACCESS_TOKEN_HERE>"
+:: -- ШАГ 1: Подготовка контента от имени АВТОРА --
+:: 3.1. Войдите как автор (см. 2.1) и скопируйте 'access_token' автора.
+curl -X POST "http://127.0.0.1:8000/api/v1/auth/login" -H "Content-Type: application/x-www-form-urlencoded" -d "username=author@example.com&password=dummy_password"
 
-# 4.2. Обновление токенов
-# Скопируйте новый "refresh_token" из ответа для следующего шага.
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/auth/refresh' \
-  -H 'Content-Type: application/json' \
-  -d '{"refresh_token": "<PASTE_YOUR_REFRESH_TOKEN_HERE>"}'
+:: 3.2. АВТОР создает новость. ВАЖНО: Скопируйте 'id' этой новости (назовем его NEWS_ID_FOR_ADMIN).
+curl -X POST "http://127.0.0.1:8000/api/v1/news/" -H "Authorization: Bearer <AUTHOR_TOKEN>" -H "Content-Type: application/json" -d "{ \"title\": \"Content for Admin Test\", \"content\": {} }"
 
-# 4.3. Выход из системы (удаление сессии по refresh-токену)
-curl -X 'POST' 'http://127.0.0.1:8000/api/v1/auth/logout' \
-  -H 'Content-Type: application/json' \
-  -d '{"refresh_token": "<PASTE_THE_NEW_REFRESH_TOKEN_HERE>"}'
+:: 3.3. АВТОР создает комментарий. ВАЖНО: Скопируйте 'id' этого комментария (назовем его COMMENT_ID_FOR_ADMIN).
+curl -X POST "http://127.0.0.1:8000/api/v1/comments/" -H "Authorization: Bearer <AUTHOR_TOKEN>" -H "Content-Type: application/json" -d "{ \"text\": \"A comment to be managed by admin\", \"news_id\": \"<NEWS_ID_FOR_ADMIN>\" }"
 
-# 4.4. Авторизация через GitHub
-# Этот процесс требует браузера. Откройте в браузере следующую ссылку:
-# http://127.0.0.1:8000/api/v1/auth/github/login
-# После успешной аутентификации на GitHub, вас перенаправит на callback URL,
-# а в теле страницы будет JSON с вашими access и refresh токенами.
+:: -- ШАГ 2: Вход и действия от имени АДМИНА --
+:: 3.4. Вход в систему как администратор ('admin@example.com', пароль 'admin_password'). ВАЖНО: Скопируйте 'access_token' админа.
+curl -X POST "http://127.0.0.1:8000/api/v1/auth/login" -H "Content-Type: application/x-www-form-urlencoded" -d "username=admin@example.com&password=admin_password"
+
+:: 3.5. Админ редактирует ЧУЖУЮ новость. Замените <NEWS_ID_FOR_ADMIN>.
+curl -X PATCH "http://127.0.0.1:8000/api/v1/news/<NEWS_ID_FOR_ADMIN>" -H "Authorization: Bearer <ADMIN_TOKEN>" -H "Content-Type: application/json" -d "{ \"title\": \"Forcefully Updated by Admin\" }"
+
+:: 3.6. Админ удаляет ЧУЖОЙ комментарий. Замените <COMMENT_ID_FOR_ADMIN>.
+curl -X DELETE "http://127.0.0.1:8000/api/v1/comments/<COMMENT_ID_FOR_ADMIN>" -H "Authorization: Bearer <ADMIN_TOKEN>"
+
+:: 3.7. Админ удаляет ЧУЖУЮ новость. Замените <NEWS_ID_FOR_ADMIN>.
+curl -X DELETE "http://127.0.0.1:8000/api/v1/news/<NEWS_ID_FOR_ADMIN>" -H "Authorization: Bearer <ADMIN_TOKEN>"
+
+:: 3.8. Админ удаляет другого пользователя. Сначала найдите ID пользователя 'testuser-curl@example.com'.
+curl -X GET "http://127.0.0.1:8000/api/v1/users/" -H "Authorization: Bearer <ADMIN_TOKEN>"
+
+:: 3.9. Теперь удаляем пользователя, подставив его ID из списка выше.
+curl -X DELETE "http://127.0.0.1:8000/api/v1/users/<USER_ID_TO_DELETE>" -H "Authorization: Bearer <ADMIN_TOKEN>"
 ```

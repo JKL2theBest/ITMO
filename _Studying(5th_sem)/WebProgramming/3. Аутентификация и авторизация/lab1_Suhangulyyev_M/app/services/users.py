@@ -20,10 +20,8 @@ class UserService(BaseService):
         user_data_dict = user_data.model_dump(exclude={"password"})
         hashed_pass = hash_password(user_data.password)
 
-        #  ORM объект
         db_obj = self.repository.model(**user_data_dict, hashed_password=hashed_pass)
 
-        # Сохраняем в БД
         self.repository.session.add(db_obj)
         await self.repository.session.commit()
         await self.repository.session.refresh(db_obj)
