@@ -14,6 +14,7 @@ from db.database import AsyncSessionFactory, init_db
 from schemas.user_schemas import UserCreate
 from services.auth_service import AuthService
 from services.session_service import SessionService
+from services.role_service import RoleService
 
 # --- "Защищенные" ресурсы нашего приложения ---
 PROTECTED_DATA = {
@@ -103,6 +104,73 @@ async def handle_access_resource(service: AuthService, resource_name: str):
         print(f"\n[Ошибка] Доступ к '{resource_name}' запрещен. Недостаточно прав.")
 
 
+async def handle_change_password(service: AuthService):
+    """Обрабатывает команду смены пароля."""
+    if not current_session_token:
+        print("\n[Ошибка] Операция невозможна. Пожалуйста, войдите в систему.")
+        return
+
+    print("\n--- Смена пароля ---")
+    old_password = getpass("Введите старый пароль: ")
+    new_password = getpass("Введите новый пароль: ")
+    confirm_password = getpass("Подтвердите новый пароль: ")
+
+    if new_password != confirm_password:
+        print("\n[Ошибка] Новые пароли не совпадают.")
+        return
+
+    try:
+        success = await service.change_password(
+            current_session_token, old_password, new_password
+        )
+        if success:
+            print("\n[OK] Пароль успешно изменен.")
+    except ValueError as e:
+        print(f"\n[Ошибка] {e}")
+
+
+# --- функции-обработчики для админа ---
+
+
+async def handle_list_roles(role_service: RoleService):
+    """Выводит список всех ролей."""
+    print("\n--- Список ролей ---")
+    roles = await role_service.list_roles()
+    if not roles:
+        print("В системе нет созданных ролей.")
+    else:
+        for role_name in roles:
+            print(f"- {role_name}")
+
+
+async def handle_create_role(role_service: RoleService):
+    """Создает новую роль."""
+    print("\n--- Создание новой роли ---")
+    role_name = input("Введите название новой роли: ").strip().lower()
+    if not role_name:
+        print("\n[Ошибка] Название роли не может быть пустым.")
+        return
+    try:
+        new_role = await role_service.create_role(role_name)
+        print(f"\n[OK] Роль '{new_role}' успешно создана.")
+    except ValueError as e:
+        print(f"\n[Ошибка] {e}")
+
+
+async def handle_assign_role(role_service: RoleService):
+    """Назначает роль пользователю."""
+    print("\n--- Назначение роли пользователю ---")
+    username = input("Введите имя пользователя: ")
+    role_name = input("Введите название новой роли: ")
+    try:
+        updated_user = await role_service.assign_role_to_user(username, role_name)
+        print(
+            f"\n[OK] Пользователю '{updated_user.username}' назначена роль '{updated_user.role_name}'."
+        )
+    except ValueError as e:
+        print(f"\n[Ошибка] {e}")
+
+
 async def main():
     """Главная функция, запускающая цикл приложения."""
     print("Инициализация базы данных...")
@@ -112,6 +180,7 @@ async def main():
     session: AsyncSession = AsyncSessionFactory()
     auth_service = AuthService(session)
     session_service = SessionService(session)
+    role_service = RoleService(session)
 
     try:
         while True:
@@ -120,19 +189,41 @@ async def main():
             print("  register - зарегистрировать нового пользователя")
             print("  login    - войти в систему")
             print("  logout   - выйти из системы")
+            print("  chpasswd - сменить пароль")
             print("  access <resource_name> - получить доступ к ресурсу")
             print("    (доступные ресурсы: common_resource, admin_resource)")
             print("  exit     - выйти из программы")
+            print("\n  --- Команды администратора ---")
+            print("  list_roles        - показать все роли")
+            print("  create_role       - создать новую роль")
+            print("  assign_role       - назначить роль пользователю")
             print("=" * 30)
 
-            # Эта строка теперь находится внутри блока try
             command_line = input("> ").strip().lower().split()
+
             if not command_line:
                 continue
 
             command = command_line[0]
 
-            if command == "register":
+            if command in ["list_roles", "create_role", "assign_role"]:
+                is_admin = await auth_service.authorize(current_session_token, "admin")
+                if not is_admin:
+                    print("\n[Ошибка] Доступ запрещен. Требуются права администратора.")
+                    continue
+
+                if command == "list_roles":
+                    await handle_list_roles(role_service)
+                elif command == "create_role":
+                    await handle_create_role(role_service)
+                elif command == "assign_role":
+                    await handle_assign_role(role_service)
+
+                await session.commit()
+                # `continue` пропускает все остальные elif/else и начинает цикл заново
+                continue
+
+            elif command == "register":
                 await handle_register(auth_service)
                 await session.commit()
             elif command == "login":
@@ -140,6 +231,9 @@ async def main():
                 await session.commit()
             elif command == "logout":
                 await handle_logout(session_service)
+                await session.commit()
+            elif command == "chpasswd":
+                await handle_change_password(auth_service)
                 await session.commit()
             elif command == "access":
                 if len(command_line) > 1:

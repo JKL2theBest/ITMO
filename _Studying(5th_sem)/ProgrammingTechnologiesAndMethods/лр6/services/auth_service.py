@@ -115,3 +115,41 @@ class AuthService:
         # В более сложных системах здесь может быть проверка иерархии ролей
         # или отдельных прав (permissions).
         return user.role.name == required_role
+
+    async def change_password(
+        self, token: str, old_password: str, new_password: str
+    ) -> bool:
+        """
+        Изменяет пароль аутентифицированного пользователя.
+
+        1. Находит пользователя по токену сессии.
+        2. Проверяет, что старый пароль введен верно.
+        3. Хеширует новый пароль и обновляет запись в БД.
+
+        Args:
+            token: Токен текущей сессии пользователя.
+            old_password: Текущий пароль для проверки.
+            new_password: Новый пароль.
+
+        Returns:
+            True в случае успешной смены пароля.
+
+        Raises:
+            ValueError: Если пользователь не найден, старый пароль неверный,
+                        или новый пароль совпадает со старым.
+        """
+        user = await self.session_service.get_user_by_token(token)
+        if not user:
+            raise ValueError("Invalid session or user not found.")
+
+        if not verify_password(old_password, user.hashed_password):
+            raise ValueError("Incorrect old password.")
+
+        if old_password == new_password:
+            raise ValueError("New password cannot be the same as the old password.")
+
+        # Все проверки пройдены, обновляем пароль
+        user.hashed_password = hash_password(new_password)
+        await self.user_repo.update_user(user)
+
+        return True

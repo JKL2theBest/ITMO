@@ -5,7 +5,8 @@
 высокоуровневые методы для работы с сущностями.
 """
 
-from typing import Optional
+from typing import Optional, List
+import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,6 +54,30 @@ class UserRepository:
         await self.session.refresh(new_user, attribute_names=["role"])
         return new_user
 
+    async def update_user(self, user: User) -> User:
+        """
+        Обновляет данные пользователя.
+
+        Так как мы работаем с объектом, который уже находится в сессии,
+        изменения его атрибутов отслеживаются SQLAlchemy. `flush` отправит
+        UPDATE-запрос в БД.
+
+        Args:
+            user: Объект User с измененными данными.
+
+        Returns:
+            Обновленный объект User.
+        """
+        await self.session.flush()
+        await self.session.refresh(user)
+        return user
+
+    async def get_by_id(self, user_id: uuid.UUID) -> Optional[User]:
+        """Находит пользователя по его UUID."""
+        stmt = select(User).where(User.id == user_id).options(selectinload(User.role))
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
 
 class RoleRepository:
     """Репозиторий для выполнения операций с моделью Role."""
@@ -73,3 +98,9 @@ class RoleRepository:
         await self.session.flush()
         await self.session.refresh(new_role)
         return new_role
+
+    async def get_all(self) -> List[Role]:
+        """Возвращает список всех ролей в системе."""
+        stmt = select(Role)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
