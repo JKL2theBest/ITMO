@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система Аутентификации</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin-bottom: 1rem; }
+        h2, h3 { margin-top: 0; }
+        input, select { width: calc(100% - 22px); padding: 10px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; width: 100%; margin-top: 0.5rem;}
+        button:hover { background-color: #0056b3; }
+        button.secondary { background-color: #6c757d; }
+        button.secondary:hover { background-color: #5a6268; }
+        #response, #user-info { margin-top: 1rem; padding: 1rem; border-radius: 4px; background-color: #e9ecef; word-wrap: break-word; white-space: pre-wrap; }
+        .hidden { display: none; }
+        .view-section { border-top: 2px solid #007bff; margin-top: 1.5rem; padding-top: 1.5rem; }
+        label { font-weight: bold; display: block; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <h1>Auth System API Client</h1>
+
+    <!-- Секция для неаутентифицированных пользователей -->
+    <div id="guest-view" class="container">
+        <div id="register-section">
+            <h2>Регистрация</h2>
+            <form id="register-form">
+                <input type="text" id="reg-username" placeholder="Имя пользователя" required>
+                <input type="password" id="reg-password" placeholder="Пароль (мин. 8 симв.)" required>
+                <input type="text" id="reg-role" placeholder="Роль (user/admin)" value="user">
+                <button type="submit">Зарегистрироваться</button>
+            </form>
+        </div>
+        <div id="login-section" class="view-section">
+            <h2>Вход</h2>
+            <form id="login-form">
+                <input type="text" id="login-username" placeholder="Имя пользователя" required>
+                <input type="password" id="login-password" placeholder="Пароль" required>
+                <input type="text" id="login-mfa" class="hidden" placeholder="6-значный MFA код">
+                <button type="submit">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Секция для аутентифицированных пользователей -->
+    <div id="auth-view" class="container hidden">
+        <h2 id="welcome-message">Добро пожаловать!</h2>
+        <div id="user-info"></div>
+
+        <div id="user-actions" class="view-section">
+            <h3>Действия пользователя</h3>
+            <form id="change-password-form">
+                <input type="password" id="old-password" placeholder="Старый пароль" required>
+                <input type="password" id="new-password" placeholder="Новый пароль" required>
+                <button type="submit">Сменить пароль</button>
+            </form>
+            <hr>
+            <form id="access-resource-form">
+                <select id="resource-name">
+                    <option value="common_resource">Общий ресурс</option>
+                    <option value="admin_resource">Админ-ресурс</option>
+                </select>
+                <button type="submit">Получить доступ к ресурсу</button>
+            </form>
+        </div>
+
+        <div id="admin-panel" class="view-section hidden">
+            <h3>Панель администратора</h3>
+            <button id="list-roles-btn" class="secondary">Показать все роли</button>
+            <hr>
+             <form id="create-role-form">
+                <input type="text" id="new-rolename" placeholder="Название новой роли" required>
+                <button type="submit">Создать роль</button>
+            </form>
+            <hr>
+            
+             <form id="enable-mfa-form">
+                <input type="text" id="mfa-username" placeholder="Имя пользователя для MFA" required>
+                <button type="submit">Включить MFA</button>
+            </form>
+            <hr>
+            <form id="assign-role-form">
+                <input type="text" id="assign-username" placeholder="Имя пользователя" required>
+                <input type="text" id="assign-rolename" placeholder="Новая роль" required>
+                <button type="submit">Назначить роль</button>
+            </form>
+        </div>
+
+        <div class="view-section">
+            <button id="logout-btn" class="secondary">Выйти</button>
+        </div>
+    </div>
+
+    <!-- Область для вывода ответов и ошибок -->
+    <div id="response" class="container"></div>
+
+    <script>
+        // --- Константы и глобальные переменные ---
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        const guestView = document.getElementById('guest-view');
+        const authView = document.getElementById('auth-view');
+        const adminPanel = document.getElementById('admin-panel');
+        const userInfoDiv = document.getElementById('user-info');
+        const responseDiv = document.getElementById('response');
+        const welcomeMessage = document.getElementById('welcome-message');
+        
+        // Используем sessionStorage для хранения токена - он будет жить, пока открыта вкладка браузера
+        let sessionToken = sessionStorage.getItem('sessionToken');
+        
+        // --- Основная функция инициализации ---
+        function initialize() {
+            if (sessionToken) {
+                // Если токен есть, попробуем получить информацию о пользователе
+                // В реальном приложении для этого был бы эндпоинт /users/me
+                // Мы просто покажем, что пользователь вошел
+                updateUI(true);
+            } else {
+                updateUI(false);
+            }
+        }
+
+        // --- Общая функция для отправки запросов ---
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (sessionToken) {
+                headers['X-Auth-Token'] = sessionToken;
+            }
+            
+            const config = {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : null
+            };
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+            const data = await response.json().catch(() => ({})); // Обработка пустых ответов (204 No Content)
+            showResponse(data, response.status);
+            return { ok: response.ok, status: response.status, data };
+        }
+
+        // --- Обработчики форм ---
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const role_name = document.getElementById('reg-role').value;
+            await apiRequest('/register', 'POST', { username, password, role_name });
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const mfa_code = document.getElementById('login-mfa').value;
+            
+            const payload = { username, password };
+            if (mfa_code) payload.mfa_code = mfa_code;
+
+            const { ok, data, status } = await apiRequest('/login', 'POST', payload);
+
+            if (ok && data.session_token) {
+                sessionToken = data.session_token;
+                sessionStorage.setItem('sessionToken', sessionToken);
+                updateUI(true);
+            } else if (status === 202 && data.message === 'MFA code required') {
+                document.getElementById('login-mfa').classList.remove('hidden');
+            }
+        });
+        document.getElementById('list-roles-btn').addEventListener('click', async () => {
+            // Просто вызываем наш эндпоинт для получения списка ролей
+            await apiRequest('/admin/roles', 'GET');
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            if(sessionToken) {
+                await apiRequest('/logout', 'POST');
+            }
+            sessionToken = null;
+            sessionStorage.removeItem('sessionToken');
+            updateUI(false);
+        });
+
+        document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const old_password = document.getElementById('old-password').value;
+            const new_password = document.getElementById('new-password').value;
+            await apiRequest('/change-password', 'POST', { old_password, new_password });
+        });
+        
+        document.getElementById('access-resource-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resource_name = document.getElementById('resource-name').value;
+            await apiRequest(`/resources/${resource_name}`, 'GET');
+        });
+
+        document.getElementById('create-role-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const role_name = document.getElementById('new-rolename').value;
+            // Динамический URL, который вызывает наш POST эндпоинт
+            await apiRequest(`/admin/roles/${role_name}`, 'POST');
+        });
+
+        document.getElementById('enable-mfa-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('mfa-username').value;
+            const { data } = await apiRequest(`/admin/users/${username}/enable-mfa`, 'POST');
+            if (data.qr_code_uri) {
+                window.open(data.qr_code_uri, '_blank');
+            }
+        });
+
+        document.getElementById('assign-role-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('assign-username').value;
+            const role_name = document.getElementById('assign-rolename').value;
+            await apiRequest(`/admin/users/${username}/role?role_name=${role_name}`, 'PUT');
+        });
+
+        // --- Вспомогательные функции ---
+        function showResponse(data, status) {
+            responseDiv.textContent = `Статус: ${status}\n\n${JSON.stringify(data, null, 2)}`;
+            responseDiv.style.backgroundColor = status >= 200 && status < 300 ? '#d4edda' : '#f8d7da';
+        }
+
+        function updateUI(isAuthenticated) {
+            if (isAuthenticated) {
+                guestView.classList.add('hidden');
+                authView.classList.remove('hidden');
+                
+                // В реальном приложении мы бы делали запрос на /users/me, чтобы получить данные
+                // Здесь мы просто показываем токен и проверяем, админ ли это
+                userInfoDiv.textContent = `Токен сессии сохранен.`;
+                welcomeMessage.textContent = `Добро пожаловать!`;
+
+                // Проверка прав админа (очень упрощенная, только для UI)
+                // Для этого нужен эндпоинт /users/me, который вернет роль
+                // Пока что просто будем показывать админ-панель всегда
+                adminPanel.classList.remove('hidden');
+
+            } else {
+                guestView.classList.remove('hidden');
+                authView.classList.add('hidden');
+                userInfoDiv.textContent = '';
+                document.getElementById('login-mfa').classList.add('hidden');
+                document.getElementById('login-mfa').value = '';
+                // Сбрасываем все формы при выходе
+                document.querySelectorAll('form').forEach(form => form.reset());
+            }
+        }
+        
+        // --- Запуск приложения ---
+        initialize();
+    </script>
+</body>
+</html>

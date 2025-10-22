@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, String, func, Boolean
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
 
 # Базовый класс для всех декларативных моделей.
@@ -44,8 +44,10 @@ class User(Base):
     )
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"))
 
-    role: Mapped["Role"] = relationship(back_populates="users")
+    mfa_secret: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
+    role: Mapped["Role"] = relationship(back_populates="users")
     sessions: Mapped[List["Session"]] = relationship(back_populates="user")
 
     def __repr__(self) -> str:

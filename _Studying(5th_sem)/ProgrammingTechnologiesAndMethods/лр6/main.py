@@ -47,17 +47,59 @@ async def handle_register(service: AuthService):
         print(f"\n[Ошибка] {e}")
 
 
-async def handle_login(service: AuthService):
-    """Обрабатывает команду входа в систему."""
+async def handle_enable_mfa(auth_service: AuthService, role_service: RoleService):
+    """Включает MFA для пользователя."""
+    print("\n--- Включение MFA для пользователя ---")
+    username = input("Введите имя пользователя, для которого нужно включить MFA: ")
+
+    user_model = await auth_service.user_repo.get_by_username(username)
+    if not user_model:
+        print(f"\n[Ошибка] Пользователь '{username}' не найден.")
+        return
+
+    if user_model.is_mfa_enabled:
+        print(f"\n[Инфо] MFA уже включен для пользователя '{username}'.")
+        return
+
+    secret = auth_service.mfa_service.generate_secret()
+    user_model.mfa_secret = secret
+    user_model.is_mfa_enabled = True
+    await auth_service.user_repo.update_user(user_model)
+
+    uri = auth_service.mfa_service.get_provisioning_uri(username, secret)
+    print("\n[OK] MFA успешно включен!")
+    print("---------------------------------------------------------")
+    print("Секретный ключ (сохраните его!):", secret)
+    print("Откройте эту ссылку в браузере, чтобы увидеть QR-код для сканирования:")
+    print(f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={uri}")
+    print("---------------------------------------------------------")
+
+
+async def handle_login(auth_service: AuthService, session_service: SessionService):
+    """Обрабатывает команду входа в систему (с поддержкой MFA)."""
     global current_session_token
     print("\n--- Вход в систему ---")
     username = input("Имя пользователя: ")
     password = getpass("Пароль: ")
 
     try:
-        token = await service.authenticate_user(username, password)
-        current_session_token = token
+        # Шаг 1: Проверка имени и пароля
+        user, mfa_required = await auth_service.authenticate_user(username, password)
+
+        # Шаг 2: Если требуется, проверяем второй фактор (TOTP)
+        if mfa_required:
+            mfa_code = input("Введите 6-значный код из приложения-аутентификатора: ")
+            if not user.mfa_secret or not auth_service.mfa_service.verify_code(
+                user.mfa_secret, mfa_code
+            ):
+                print("\n[Ошибка] Неверный код аутентификации.")
+                return
+
+        # Шаг 3: Создание сессии
+        new_session = await session_service.create_session(user)
+        current_session_token = new_session.token
         print("\n[OK] Вход выполнен успешно. Сессия открыта.")
+
     except ValueError as e:
         print(f"\n[Ошибка] {e}")
 
@@ -194,6 +236,9 @@ async def main():
             print("    (доступные ресурсы: common_resource, admin_resource)")
             print("  exit     - выйти из программы")
             print("\n  --- Команды администратора ---")
+            print(
+                "  enable_mfa          - включить MFA для пользователя (только админ)"
+            )
             print("  list_roles        - показать все роли")
             print("  create_role       - создать новую роль")
             print("  assign_role       - назначить роль пользователю")
@@ -206,7 +251,7 @@ async def main():
 
             command = command_line[0]
 
-            if command in ["list_roles", "create_role", "assign_role"]:
+            if command in ["list_roles", "create_role", "assign_role", "enable_mfa"]:
                 is_admin = await auth_service.authorize(current_session_token, "admin")
                 if not is_admin:
                     print("\n[Ошибка] Доступ запрещен. Требуются права администратора.")
@@ -218,6 +263,8 @@ async def main():
                     await handle_create_role(role_service)
                 elif command == "assign_role":
                     await handle_assign_role(role_service)
+                elif command == "enable_mfa":
+                    await handle_enable_mfa(auth_service, role_service)
 
                 await session.commit()
                 # `continue` пропускает все остальные elif/else и начинает цикл заново
@@ -227,7 +274,7 @@ async def main():
                 await handle_register(auth_service)
                 await session.commit()
             elif command == "login":
-                await handle_login(auth_service)
+                await handle_login(auth_service, session_service)
                 await session.commit()
             elif command == "logout":
                 await handle_logout(session_service)

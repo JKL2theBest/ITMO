@@ -6,8 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import hash_password, verify_password
 from db.repository import RoleRepository, UserRepository
+from db.models import User
 from schemas.user_schemas import UserCreate, UserPublic
 from services.session_service import SessionService
+from .mfa_service import MFAService
 
 
 class AuthService:
@@ -19,6 +21,7 @@ class AuthService:
         self.user_repo = UserRepository(session)
         self.role_repo = RoleRepository(session)
         self.session_service = SessionService(session)
+        self.mfa_service = MFAService()
         self.session = session
 
     async def register_user(self, user_data: UserCreate) -> UserPublic:
@@ -65,7 +68,9 @@ class AuthService:
             created_at=new_user.created_at,
         )
 
-    async def authenticate_user(self, username: str, password: str) -> str:
+    async def authenticate_user(
+        self, username: str, password: str
+    ) -> tuple[User | None, bool]:
         """
         Аутентифицирует пользователя.
 
@@ -78,7 +83,7 @@ class AuthService:
             password: Пароль в открытом виде.
 
         Returns:
-            Токен сессии в случае успешной аутентификации.
+            возвращает кортеж (пользователь, требуется_ли_mfa).
 
         Raises:
             ValueError: Если аутентификация не удалась (неверное имя или пароль).
@@ -88,9 +93,8 @@ class AuthService:
         if not user or not verify_password(password, user.hashed_password):
             raise ValueError("Invalid username or password.")
 
-        new_session = await self.session_service.create_session(user)
-
-        return new_session.token
+        # Возвращаем пользователя и флаг необходимости второго фактора
+        return user, user.is_mfa_enabled
 
     async def authorize(self, token: str, required_role: str) -> bool:
         """
