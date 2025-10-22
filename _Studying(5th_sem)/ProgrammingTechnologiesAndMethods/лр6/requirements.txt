@@ -1,0 +1,14 @@
+# ORM и драйвер для SQLite
+sqlalchemy[asyncio]>=2.0
+aiosqlite>=0.19
+
+# Хеширование паролей
+passlib[argon2]>=1.7
+
+# Валидация данных
+pydantic>=2.5
+
+# Для тестирования
+pytest>=8.0
+pytest-asyncio>=0.23
+pydantic_settings>=2.11.0
