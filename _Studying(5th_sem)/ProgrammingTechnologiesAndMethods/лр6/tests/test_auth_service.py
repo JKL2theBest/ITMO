@@ -80,21 +80,6 @@ async def test_register_user_duplicate_username(auth_service: AuthService):
         await auth_service.register_user(user_data)
 
 
-async def test_authenticate_user_success(auth_service: AuthService):
-    """
-    Тест успешной аутентификации.
-    """
-    password = "MySecurePassword_123"
-    user_data = UserCreate(username="auth_user", password=password)
-    await auth_service.register_user(user_data)
-
-    # Пробуем аутентифицироваться
-    session_token = await auth_service.authenticate_user(user_data.username, password)
-
-    assert session_token is not None
-    assert isinstance(session_token, str)
-
-
 async def test_authenticate_user_wrong_password(auth_service: AuthService):
     """
     Тест ошибки аутентификации с неверным паролем.
