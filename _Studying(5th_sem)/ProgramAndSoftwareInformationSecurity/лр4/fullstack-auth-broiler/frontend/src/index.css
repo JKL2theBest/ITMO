@@ -1,0 +1,429 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #6b8dd6 0%, #8bb7f0 50%, #c6d9f2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  color: #333;
+}
+
+/* --- Стили корневого компонента App --- */
+.app {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.windows-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/grid-background.svg');
+  background-repeat: repeat; 
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* --- Стили UI-элементов (диалоги, формы, кнопки) --- */
+.windows7-dialog {
+  background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+  border: 2px solid #c0c0c0;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  width: 400px;
+  padding: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.windows7-header {
+  background: linear-gradient(to bottom, #4f7ac4, #3d6ab0);
+  color: white;
+  padding: 8px 16px;
+  margin: -20px -20px 20px -20px;
+  border-radius: 6px 6px 0 0;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.windows7-icon {
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, #ffffff 30%, #4f7ac4 70%);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #4f7ac4;
+}
+
+.windows7-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.windows7-input {
+  padding: 6px 8px;
+  border: 2px inset #c0c0c0;
+  background: white;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.windows7-input:focus {
+  border: 2px inset #4f7ac4;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.windows7-input::placeholder {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #aaa;
+}
+
+@media (max-width: 480px) {
+  .windows7-dialog {
+    width: 90%;
+    max-width: 350px;
+    padding: 16px;
+  }
+  .windows7-header {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  /* Важно для мобильных: предотвращает авто-зум в iOS при фокусе на поле ввода */
+  .windows7-input {
+    font-size: 16px; 
+  }
+}
+
+/* --- Стили кнопок --- */
+.windows7-button {
+  padding: 8px 16px;
+  border: 2px outset #c0c0c0;
+  background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+  color: #000;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 3px;
+  min-width: 150px;
+  text-align: center;
+  transition: all 0.1s;
+  display: inline-block;
+}
+
+.windows7-button:hover {
+  background: linear-gradient(to bottom, #f5f5f5, #e5e5e5);
+}
+
+.windows7-button:active {
+  border: 2px inset #c0c0c0;
+  background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+}
+
+.windows7-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(to bottom, #f0f0f0, #e0e0e0) !important;
+  border: 2px outset #c0c0c0 !important;
+  color: #888;
+}
+
+.register-button {
+  background: linear-gradient(to bottom, #4f7ac4, #3d6ab0);
+  color: white;
+  border: 2px outset #4f7ac4;
+}
+
+.register-button:hover {
+  background: linear-gradient(to bottom, #5a85d0, #4776bc);
+}
+
+.register-button:active {
+  border: 2px inset #4f7ac4;
+  background: linear-gradient(to bottom, #3d6ab0, #2d5aa0);
+}
+
+/* --- Классы для замены инлайн-стилей --- */
+.dialog-main {
+  width: 500px;
+  text-align: center;
+}
+
+.dialog-content {
+  padding: 40px 20px;
+}
+
+.dialog-title {
+  color: #4f7ac4;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.dialog-text {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.button-group {
+  margin-bottom: 30px;
+}
+
+.button-prize {
+  background: linear-gradient(to bottom, #ff9800, #f57c00);
+  color: white;
+}
+
+.button-margin-left {
+  margin-left: 10px;
+}
+
+/* --- Стили для видео --- */
+.video-container {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.prize-video {
+  max-width: 100%;
+  max-height: 550px;
+  border: 2px solid #c0c0c0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: #000;
+  object-fit: cover;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* --- Стили статусов и ошибок --- */
+.status-message {
+  margin-top: 12px;
+  padding: 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.status-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.field-error {
+  color: #d32f2f;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #4f7ac4;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Стили для игры "Змейка" --- */
+.snake-game-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+  border: 2px solid #c0c0c0;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #c0c0c0;
+}
+
+.game-header h2 {
+  color: #4f7ac4;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.game-stats {
+  font-size: 14px;
+  color: #333;
+  font-weight: bold;
+}
+
+.game-stats-status {
+  margin-left: 20px;
+}
+
+.game-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.game-instructions {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #c0c0c0;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.game-instructions p {
+  margin: 5px 0;
+}
+
+.game-over {
+  background: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.game-over h3 {
+  color: #f44336;
+  margin-bottom: 10px;
+}
+
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  gap: 1px;
+  background: #333;
+  border: 2px solid #333;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto 20px;
+}
+
+.game-cell {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+}
+
+.game-cell.empty { background: #1a1a1a; }
+.game-cell.snake-head {
+  background: #4caf50;
+  border-radius: 50%;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+.game-cell.snake-body {
+  background: #66bb6a;
+  border-radius: 3px;
+}
+.game-cell.apple {
+  background: #f44336;
+  border-radius: 50%;
+  position: relative;
+}
+.game-cell.apple::after {
+  content: '🍎';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: white;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+}
+
+.game-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  border-radius: 2px;
+  border: 1px solid #999;
+}
+.legend-color.snake-head { background: #4caf50; }
+.legend-color.snake-body { background: #66bb6a; }
+.legend-color.apple { background: #f44336; border-radius: 50%; }
+
+@media (max-width: 600px) {
+  .snake-game-container { padding: 15px; }
+  .game-board { width: 300px; height: 300px; }
+  .game-controls { flex-wrap: wrap; }
+  .game-legend { flex-direction: column; align-items: center; gap: 10px; }
+}

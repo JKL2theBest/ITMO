@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: broiler_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - broiler_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: broiler_backend
+    env_file: .env
+    ports: ["${BACKEND_PORT}:${BACKEND_PORT}"]
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [broiler_network]
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: broiler_frontend
+    ports: ["80:80"]
+    depends_on:
+      backend: { condition: service_started }
+    networks: [broiler_network]
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  broiler_network:
+    driver: bridge
