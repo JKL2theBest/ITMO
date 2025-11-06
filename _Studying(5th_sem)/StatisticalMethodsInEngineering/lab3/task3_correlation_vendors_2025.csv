@@ -1,0 +1,24 @@
+Vendor,Total_Vulns,Critical_Vulns,Incident_Vulns
+"microsoft corp",612,84,33
+"ооо ""ред софт""",677,68,7
+"ооо ""русбитех-астра""",1082,63,5
+"ао ""нппкт""",866,63,5
+"сообщество свободного по",1599,60,3
+"google inc",0,48,5
+"apple inc.",0,37,6
+"d-link corp.",0,40,0
+"shenzhen tenda technology co., ltd",0,23,0
+"totolink",0,31,4
+"ivanti",0,0,9
+"vmware inc.",0,0,4
+"cisco systems inc.",0,0,3
+"sonicwall",0,0,3
+"simplehelp ltd",0,0,3
+"forinet inc",0,0,3
+"palo alto networks inc",0,0,3
+"qualcomm technologies inc",0,0,3
+"red hat inc.",539,0,0
+"adobe systems inc.",442,0,0
+"ао ""ивк""",362,0,0
+"novell inc.",325,0,0
+"canonical ltd",308,0,0
