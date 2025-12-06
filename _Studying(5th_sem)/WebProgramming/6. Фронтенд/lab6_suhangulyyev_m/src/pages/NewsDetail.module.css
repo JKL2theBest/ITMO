@@ -1,0 +1,194 @@
+.articleTitle {
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: var(--win-text-main);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--win-text-sec);
+    font-size: 0.9rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--win-border);
+}
+
+.author {
+    color: var(--win-text-main);
+    font-weight: 600;
+    background: #eee;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.content {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--win-text-main);
+    white-space: pre-wrap;
+    margin-bottom: 4rem;
+}
+
+.actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.commentsSection {
+    background: var(--win-bg);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.commentsHeader {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--win-text-main);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.commentsCount {
+    background: #e0e0e0;
+    color: #202020;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.commentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 2rem;
+}
+
+.commentItem {
+    background-color: var(--win-surface);
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--win-border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.commentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.commentAuthor {
+    font-weight: 700;
+    color: var(--win-text-main);
+}
+
+.commentDate {
+    color: var(--win-text-sec);
+}
+
+.commentText {
+    margin: 0;
+    color: var(--win-text-main);
+    line-height: 1.5;
+}
+
+.deleteCommentBtn {
+    background: none;
+    border: none;
+    color: #d13438;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+.deleteCommentBtn:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.loginPrompt {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--win-surface);
+    border: 1px dashed var(--win-border);
+    border-radius: 6px;
+    color: var(--win-text-sec);
+}
+
+.loginLink {
+    color: var(--win-accent);
+    font-weight: 600;
+}
+
+.editActions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.editNewsTextarea {
+    resize: vertical;
+    min-height: 300px;
+    font-family: inherit;
+}
+
+.btnAuto {
+    width: auto !important;
+}
+
+.editCommentWrapper {
+    margin-top: 10px;
+}
+
+.editCommentActions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.btnSmall {
+    padding: 4px 12px !important;
+    font-size: 0.85rem !important;
+    width: auto !important;
+}
+
+.commentActions {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.btnTextAction {
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.btnTextAction:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.textDanger {
+    color: #d13438;
+}
+
+.textAccent {
+    color: var(--win-accent);
+}

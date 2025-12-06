@@ -1,0 +1,45 @@
+:root {
+  --win-bg: #f3f3f3;
+  --win-surface: #ffffff;
+  --win-text-main: #202020;
+  --win-text-sec: #5d5d5d;
+  --win-accent: #0067C0;
+  --win-accent-hover: #005a9e;
+  --win-border: #e5e5e5;
+  --win-input-border: #8d8d8d;
+  
+  font-family: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  color-scheme: light;
+  color: var(--win-text-main);
+  background-color: var(--win-bg);
+
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--win-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+  margin-top: 0;
+}
+
+button {
+  font-family: inherit;
+}

@@ -1,0 +1,24 @@
+.label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--win-text-main);
+    font-size: 0.95rem;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 150px;
+    font-family: inherit;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 1.5rem;
+}
+
+.btnAutoWidth {
+    width: auto !important;
+}

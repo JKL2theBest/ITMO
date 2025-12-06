@@ -1,0 +1,65 @@
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.avatarContainer {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 1rem auto;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #e0e0e0;
+    border: 4px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatarImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarPlaceholder {
+    font-size: 2.5rem;
+    color: #888;
+    font-weight: 600;
+}
+
+.email {
+    color: var(--win-text-sec);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.roleBadge {
+    background-color: #e6f2fa;
+    color: var(--win-accent);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--win-text-sec);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.successMessage {
+    background-color: #dff6dd;
+    color: #107c10;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    border: 1px solid #d2e9d0;
+}

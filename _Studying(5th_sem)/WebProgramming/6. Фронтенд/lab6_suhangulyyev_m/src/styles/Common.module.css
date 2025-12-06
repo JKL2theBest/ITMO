@@ -1,0 +1,134 @@
+.container {
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.card {
+    background-color: var(--win-surface);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 2.5rem;
+}
+
+.authCard {
+    composes: card;
+    max-width: 400px;
+    margin: 10vh auto;
+}
+
+.title {
+    margin-bottom: 1.5rem;
+    color: var(--win-text-main);
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    background-color: var(--win-surface);
+    color: var(--win-text-main);
+    border: 1px solid var(--win-input-border);
+    border-radius: 4px;
+    border-bottom-width: 1px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.1s ease-in-out;
+}
+
+.input::placeholder {
+    color: #8d8d8d;
+}
+
+.input:hover {
+    background-color: #fbfbfb;
+}
+
+.input:focus {
+    background-color: var(--win-surface);
+    border-color: var(--win-accent);
+    border-bottom-width: 2px;
+}
+
+.button {
+    width: 100%;
+    padding: 8px 16px;
+    background-color: var(--win-accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button:hover {
+    background-color: var(--win-accent-hover);
+}
+
+.button:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+.buttonDanger {
+    composes: button;
+    background-color: #d13438;
+    width: auto;
+}
+
+.buttonDanger:hover {
+    background-color: #a4262c;
+}
+
+.error {
+    background: #fde7e9;
+    color: #c50f1f;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    border: 1px solid #fdd3d6;
+}
+
+.loading {
+    text-align: center;
+    margin-top: 3rem;
+    color: var(--win-text-sec);
+}
+
+.linkText {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--win-text-sec);
+}
+
+.buttonSecondary {
+    composes: button;
+    background-color: transparent;
+    color: var(--win-text-main);
+    border: 1px solid var(--win-border);
+}
+
+.buttonSecondary:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-color: #d1d1d1;
+    color: var(--win-text-main);
+}
+
+.buttonSecondary:active {
+    background-color: rgba(0, 0, 0, 0.06);
+}
