@@ -173,6 +173,10 @@ Frontend: [https://github.com/itmo-webdev/lab6_Suhangulyyev_M.git](https://githu
 poetry run pytest
 ```
 
+![Full testing gif](.//screenshots/testing.gif)
+
+[![Смотреть видео]](.//screenshots/testing.mp4)
+
 *Обратите внимение на настройки в pytest.ini (addopts = -v --cov=app --cov-report=term-missing)*
 
 **Запуск только Unit и API тестов (без UI):**
@@ -184,6 +188,8 @@ poetry run pytest --ignore=tests/e2e
 ```bash
 poetry run pytest tests/e2e/ --headed --slowmo 1000
 ```
+
+![E2E tests completed successfully](.//screenshots/e2e_tests.png)
 
 **Генерация HTML-отчета о покрытии:**
 ```bash
