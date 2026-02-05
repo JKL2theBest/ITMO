@@ -18,15 +18,33 @@
 
 ---
 
-## 🔥 Актуальное: 5 Семестр (Осень 2025)
+## 🔥 Актуальное: 6 Семестр (Весна 2026)
 
 | Предмет | Ключевые навыки / Технологии | Ссылка |
 |---|---|---|
-| *... (будет дополнено)* | *Самые разнообразные...* | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/_Studying(5th_sem)) |
+| *... (будет дополнено)* | *Самые разнообразные...* | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/_Studying(6th_sem)) |
 
 ---
 
 ## 🗄️ Архив предыдущих семестров
+
+<details>
+<summary><h3>🍂 Семестр 5 (Осень 2025) — High Load & DevOps</h3></summary>
+  
+> **Ключевой семестр:** Углубленное изучение Backend-разработки, CI/CD и безопасности приложений.
+
+| Предмет | Ключевые навыки / Технологии | Ссылка |
+|---|---|---|
+| **Web-программирование** | ![FastAPI](https://img.shields.io/badge/-FastAPI-005571?style=flat-square&logo=fastapi&logoColor=white) ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white) ![Grafana](https://img.shields.io/badge/-Grafana-F46800?style=flat-square&logo=grafana&logoColor=white) `Prometheus`, `ELK`, `React` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/WebProgramming) |
+| **Компьютерные сети** | `Packet Analysis`, `Protocols` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/ComputerNetworks) |
+| **ИБ Баз Данных (Часть 2)** | `NoSQL`, `Data Engineering Security` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/DatabaseSecurity(2nd)) |
+| **Программно-аппаратная защита (ПАСЗИ)** | `Fullstack Auth`, `Security Policies` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/ProgramAndSoftwareInformationSecurity) |
+| **Технологии программирования (ТиМП)** | `UML`, `Unit/E2E Testing`, `Software Design` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/ProgrammingTechnologiesAndMethods) |
+| **Статистические методы** | `Data Analysis`, `Cluster Analysis` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/StatisticalMethodsInEngineering) |
+| **Криптология** | `Encryption Algorithms`, `Math` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/Cryptology) |
+| **Схемотехника** | `Micro-Cap`, `Electronics` | [**Перейти**](https://github.com/JKL2theBest/ITMO/tree/master/Semester_5/ElectricalAndSchemotechnicalEngineering) |
+
+</details>
 
 <details>
 <summary><h3>☀️ Семестр 4</h3></summary>
