@@ -8,9 +8,6 @@
 </p>
 
 <p align="center">
-    <a href="https://pay.cloudtips.ru/p/d06321dd">
-      <img src="https://img.shields.io/badge/Поддержать-FFBF00?style=for-the-badge&logo=ruble&logoColor=black" alt="Поддержать"/>
-    </a>
     <a href="https://t.me/jkl2youtube">
       <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram"/>
     </a>
