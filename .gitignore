@@ -98,8 +98,6 @@ __pycache__/
 pip-log.txt
 pip-delete-this-directory.txt
 .eggs/
-dist/
-build/
 *.egg-info/
 
 # --- C / C++ ---
@@ -119,10 +117,9 @@ build/
 *.ilk
 *.pdb
 # Папки с результатами сборки
-/build/
-/bin/
-/Debug/
-/Release/
+bin/
+Debug/
+Release/
 
 # --- Java ---
 *.class
@@ -130,7 +127,7 @@ build/
 *.war
 *.ear
 /target/
-hs_err_pid*
+hs_err_pid*.log
 
 # --- JavaScript / Node.js ---
 # Никогда не добавляйте в репозиторий эту папку!
@@ -140,13 +137,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 # Сборки
-/dist/
-/.dist/
-/build/
+.dist/
 
 # --- C# / .NET ---
-/bin/
-/obj/
+obj/
 *.user
 *.userosscache
 *.sln.docstates
@@ -205,7 +199,6 @@ yarn-error.log*
 # ===================================================================
 
 # --- Лог-файлы ---
-*.log
 logs/
 *.history
 
@@ -238,7 +231,6 @@ logs/
 *.id3
 *.til
 *.nam
-*.log
 *.idc
 *.idc.bak
 
